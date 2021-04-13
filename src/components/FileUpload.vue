@@ -23,12 +23,20 @@
     <div v-show="state._file.state">
       {{ state._file.name }} - {{ state._file.state }}
     </div>
+
+    <button
+      v-show="state._file.state === 'queue'"
+      @click="encryptFile(state?._file)"
+    >
+      Encrypt
+    </button>
   </div>
 </template>
 
 <script>
 import { onMounted, onBeforeUnmount, computed, reactive } from "vue";
 import { useUpload } from "@websanova/vue-upload/src/v3.js";
+import { encrypt } from "../utils/cryptography";
 
 export default {
   setup() {
@@ -41,16 +49,17 @@ export default {
     function select() {
       upload.select("the-file");
     }
+    async function encryptFile(fileList) {
+      const file = await fileList.$file.text();
+      const encrypted = encrypt(file, "Secret Passphrase");
+      console.log(encrypted);
+    }
     onMounted(() => {
       upload.on("the-file", {
-        accept: "text/csv",
+        accept: "image/*", //TODO: update with correct mimes type
         startOnSelect: false,
         maxSizePerFile: 1024 * 1024 * 3,
-        extensions: ["csv"],
-        onSelect: (files) => {
-          console.log("onSelect");
-          console.log(files);
-        },
+        extensions: ["jpg", "jpeg", "png"],
       });
     });
     onBeforeUnmount(() => {
@@ -59,6 +68,7 @@ export default {
     return {
       state,
       select,
+      encryptFile,
     };
   },
 };
