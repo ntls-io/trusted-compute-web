@@ -31,6 +31,29 @@
       Encrypt
     </button>
   </div>
+  <div v-if="encryptionResult">
+    <div style="display: inline-block">
+      <h1>Encrypted</h1>
+      <div style="text-align: initial">
+        <ul>
+          <li>
+            <a :href="encryptedFileURL" download>Encrypted file</a>
+          </li>
+          <li>
+            Secret key:<input
+              readonly
+              size="48"
+              :value="encryptionResult.keyBase64"
+            />
+          </li>
+          <li>
+            Nonce:
+            <input readonly size="48" :value="encryptionResult.nonceBase64" />
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -42,9 +65,32 @@ import {
   reactive,
 } from "vue";
 import { UploadFile, useUpload } from "@websanova/vue-upload";
-import { encrypt } from "../utils/cryptography";
+import { encryptBlob } from "@/utils/cryptography";
 
 export default defineComponent({
+  data: (): {
+    encryptionResult?: {
+      cipherBlob: Blob;
+      nonceBase64: string;
+      keyBase64: string;
+    };
+  } => ({
+    encryptionResult: undefined,
+  }),
+  computed: {
+    /** Allocate an object URL for encryptedFile. */
+    encryptedFileURL(): string | undefined {
+      return this.encryptionResult?.cipherBlob
+        ? URL.createObjectURL(this.encryptionResult.cipherBlob)
+        : undefined;
+    },
+  },
+  watch: {
+    /** Release old object URLs on change.  */
+    encryptedFileURL(newURL: string, oldURL: string): void {
+      if (oldURL) URL.revokeObjectURL(oldURL);
+    },
+  },
   setup() {
     const upload = useUpload();
     const state = reactive({
@@ -54,11 +100,6 @@ export default defineComponent({
     });
     function select() {
       upload.select("the-file");
-    }
-    async function encryptFile(uploadFile: UploadFile) {
-      const file = await uploadFile.$file.text();
-      const encrypted = encrypt(file, "Secret Passphrase");
-      console.log(encrypted);
     }
     onMounted(() => {
       upload.on("the-file", {
@@ -74,8 +115,13 @@ export default defineComponent({
     return {
       state,
       select,
-      encryptFile,
     };
+  },
+  methods: {
+    /** Encrypt the given file to encryptionResult. */
+    async encryptFile(uploadFile: UploadFile) {
+      this.encryptionResult = await encryptBlob(uploadFile.$file);
+    },
   },
 });
 </script>
