@@ -55,8 +55,8 @@ export default defineComponent({
     function select() {
       upload.select("the-file");
     }
-    async function encryptFile(fileList: UploadFile) {
-      const file = await fileList.$file.text();
+    async function encryptFile(uploadFile: UploadFile) {
+      const file = await uploadFile.$file.text();
       const encrypted = encrypt(file, "Secret Passphrase");
       console.log(encrypted);
     }
