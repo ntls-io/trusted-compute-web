@@ -41,7 +41,7 @@ import {
   onMounted,
   reactive,
 } from "vue";
-import { useUpload } from "@websanova/vue-upload";
+import { UploadFile, useUpload } from "@websanova/vue-upload";
 import { encrypt } from "../utils/cryptography";
 
 export default defineComponent({
@@ -55,7 +55,7 @@ export default defineComponent({
     function select() {
       upload.select("the-file");
     }
-    async function encryptFile(fileList) {
+    async function encryptFile(fileList: UploadFile) {
       const file = await fileList.$file.text();
       const encrypted = encrypt(file, "Secret Passphrase");
       console.log(encrypted);
