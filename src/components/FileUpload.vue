@@ -26,7 +26,7 @@
 
     <button
       v-show="state._file.state === 'queue'"
-      @click="encryptFile(state?._file)"
+      @click="encryptFile(state._file)"
     >
       Encrypt
     </button>
