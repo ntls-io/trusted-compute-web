@@ -103,10 +103,8 @@ export default defineComponent({
     }
     onMounted(() => {
       upload.on("the-file", {
-        accept: "image/*", //TODO: update with correct mimes type
         startOnSelect: false,
         maxSizePerFile: 1024 * 1024 * 3,
-        extensions: ["jpg", "jpeg", "png"],
       });
     });
     onBeforeUnmount(() => {
