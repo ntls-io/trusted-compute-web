@@ -34,11 +34,17 @@
 </template>
 
 <script lang="ts">
-import { onMounted, onBeforeUnmount, computed, reactive } from "vue";
+import {
+  computed,
+  defineComponent,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+} from "vue";
 import { useUpload } from "@websanova/vue-upload/src/v3.js";
 import { encrypt } from "../utils/cryptography";
 
-export default {
+export default defineComponent({
   setup() {
     const upload = useUpload();
     const state = reactive({
@@ -71,5 +77,5 @@ export default {
       encryptFile,
     };
   },
-};
+});
 </script>
