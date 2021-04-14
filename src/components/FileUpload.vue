@@ -41,7 +41,7 @@ import {
   onMounted,
   reactive,
 } from "vue";
-import { useUpload } from "@websanova/vue-upload/src/v3.js";
+import { useUpload } from "@websanova/vue-upload";
 import { encrypt } from "../utils/cryptography";
 
 export default defineComponent({
