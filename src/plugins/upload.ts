@@ -11,7 +11,6 @@ export default (app: App): void => {
       drivers: {
         http: driverHttpAxios,
       },
-      options: {},
     })
   );
 };
