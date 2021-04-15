@@ -1,56 +1,73 @@
 <template>
-  <div class="text-center">
-    <div class="mb-2">
-      <button
-        v-show="
-          !state._file.state ||
-          state._file.state === 'success' ||
-          state._file.state === 'error'
-        "
-        @click="select"
-      >
-        Select File
-      </button>
-
-      <button
-        v-show="state._file.state === 'queue'"
-        @click="state._file.clear()"
-      >
-        Remove File
-      </button>
+  <div class="container text-center">
+    <div class="row justify-content-center">
+      <div class="col-auto">
+        <button
+          :disabled="
+            state._file.state ||
+            state._file.state === 'success' ||
+            state._file.state === 'error'
+          "
+          @click="select"
+          class="btn btn-success m-2"
+        >
+          Select File
+        </button>
+      </div>
     </div>
-
-    <div v-show="state._file.state">
-      {{ state._file.name }} - {{ state._file.state }}
-    </div>
-
-    <button
-      v-show="state._file.state === 'queue'"
-      @click="encryptFile(state._file)"
-    >
-      Encrypt
-    </button>
-  </div>
-  <div v-if="encryptionResult">
-    <div style="display: inline-block">
-      <h1>Encrypted</h1>
-      <div style="text-align: initial">
-        <ul>
-          <li>
-            <a :href="encryptedFileURL" download>Encrypted file</a>
+    <div class="row justify-content-center py-3">
+      <div class="col-auto" v-if="state._file.state">
+        <ul class="list-group">
+          <li class="list-group-item">Name: {{ state._file.name }}</li>
+          <li class="list-group-item">
+            Size: {{ (state._file.size / 1024).toFixed(2) + "kb" }}
           </li>
-          <li>
-            Secret key:<input
-              readonly
-              size="48"
-              :value="encryptionResult.keyBase64"
-            />
-          </li>
-          <li>
-            Nonce:
-            <input readonly size="48" :value="encryptionResult.nonceBase64" />
+          <li class="list-group-item">Type: {{ state._file.type }}</li>
+          <li class="list-group-item">
+            Extension: {{ state._file.extension }}
           </li>
         </ul>
+
+        <button
+          v-show="state._file.state === 'queue'"
+          @click="
+            state._file.clear();
+            encryptionResult = undefined;
+          "
+          class="btn btn-danger m-2"
+        >
+          Remove File
+        </button>
+
+        <button
+          v-show="state._file.state === 'queue'"
+          @click="encryptFile(state._file)"
+          class="btn btn-warning m-2"
+        >
+          Encrypt File
+        </button>
+      </div>
+    </div>
+    <div class="row justify-content-center py-3">
+      <div class="col-auto" v-if="encryptionResult && state._file.state">
+        <ul class="list-group">
+          <li class="list-group-item">
+            <div class="fw-bold">Secret key</div>
+            {{ encryptionResult.keyBase64 }}
+          </li>
+          <li class="list-group-item">
+            <div class="fw-bold">Nonce</div>
+            {{ encryptionResult.nonceBase64 }}
+          </li>
+        </ul>
+
+        <a
+          class="btn btn-primary m-2 float-right"
+          :href="encryptedFileURL"
+          download
+        >
+          Download Encrypted File
+        </a>
       </div>
     </div>
   </div>
