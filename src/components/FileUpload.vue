@@ -66,7 +66,7 @@
           :href="encryptedFileURL"
           download
         >
-          Download Encrypted File
+          Save Encrypted File
         </a>
       </div>
     </div>
