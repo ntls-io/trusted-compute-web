@@ -13,6 +13,12 @@
               </button>
               <button
                 class="btn btn-primary btn-sm mx-1"
+                @click="copy($store.state.jwtToken)"
+              >
+                Copy
+              </button>
+              <button
+                class="btn btn-primary btn-sm mx-1"
                 @click="getAttestation($store.state.jwtToken)"
               >
                 Validate
@@ -62,6 +68,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import useClipboard from "vue-clipboard3";
 import FileUpload from "@/components/FileUpload.vue";
 import { verifyToken } from "@/utils/jwt";
 
@@ -76,6 +83,20 @@ export default defineComponent({
       user_attestation: ["mrsigner", "mrenclave"],
       busy: { fetchingToken: false }
     };
+  },
+  setup() {
+    const { toClipboard } = useClipboard();
+
+    const copy = async (token: string) => {
+      try {
+        await toClipboard(token);
+        console.log("Copied to clipboard");
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    return { copy };
   },
   mounted() {
     this.fetchJWT();
