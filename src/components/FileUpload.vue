@@ -1,65 +1,75 @@
 <template>
-  <div class="no-gutter">
-    <div class="row justify-content-center">
-      <div class="col-auto">
-        <button
+  <div>
+    <el-row>
+      <el-col>
+        <el-button
+          size="small"
+          type="primary"
           :disabled="
             state._file.state ||
             state._file.state === 'success' ||
             state._file.state === 'error'
           "
           @click="select"
-          class="btn btn-success m-2"
         >
           Select File
-        </button>
-      </div>
-    </div>
-    <div class="row justify-content-center py-3">
-      <div class="col-auto" v-if="state._file.state">
-        <ul class="list-group">
-          <li class="list-group-item">Name: {{ state._file.name }}</li>
-          <li class="list-group-item">
-            Size: {{ (state._file.size / 1024).toFixed(2) + "kb" }}
-          </li>
-          <li class="list-group-item">Type: {{ state._file.type }}</li>
-          <li class="list-group-item">
-            Extension: {{ state._file.extension }}
-          </li>
-        </ul>
+        </el-button>
+      </el-col>
+    </el-row>
+    <el-row>
+      <el-col v-if="state._file.state">
+        <el-descriptions
+          title="Selected file"
+          direction="horizontal"
+          :column="1"
+          border
+        >
+          <el-descriptions-item label="Name">
+            {{ state._file.name }}
+          </el-descriptions-item>
+          <el-descriptions-item label="Size">
+            {{ (state._file.size / 1024).toFixed(2) + "kb" }}
+          </el-descriptions-item>
+          <el-descriptions-item label="Type">
+            {{ state._file.type }}
+          </el-descriptions-item>
+          <el-descriptions-item label="Extension">
+            {{ state._file.extension }}
+          </el-descriptions-item>
+        </el-descriptions>
 
-        <button
+        <el-button
+          size="small"
+          type="danger"
           v-show="state._file.state === 'queue'"
           @click="
             state._file.clear();
             encryptionResult = undefined;
           "
-          class="btn btn-danger m-2"
         >
           Remove File
-        </button>
+        </el-button>
 
-        <button
+        <el-button
+          size="small"
+          type="success"
           v-show="state._file.state === 'queue'"
           @click="encryptFile(state._file)"
-          class="btn btn-warning m-2"
         >
           Encrypt File
-        </button>
-      </div>
-    </div>
-    <div class="row justify-content-center py-3">
-      <div class="col-auto" v-if="encryptionResult && state._file.state">
-        <ul class="list-group">
-          <li class="list-group-item text-break">
-            <div class="fw-bold">Secret key</div>
+        </el-button>
+      </el-col>
+    </el-row>
+    <el-row>
+      <el-col v-if="encryptionResult && state._file.state">
+        <el-descriptions direction="vertical" :column="1" border>
+          <el-descriptions-item label="Secret key">
             {{ encryptionResult.keyBase64 }}
-          </li>
-          <li class="list-group-item text-break">
-            <div class="fw-bold">Nonce</div>
+          </el-descriptions-item>
+          <el-descriptions-item label="Nonce">
             {{ encryptionResult.nonceBase64 }}
-          </li>
-        </ul>
+          </el-descriptions-item>
+        </el-descriptions>
 
         <a
           class="btn btn-primary m-2 float-right"
@@ -68,8 +78,8 @@
         >
           Save Encrypted File
         </a>
-      </div>
-    </div>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
