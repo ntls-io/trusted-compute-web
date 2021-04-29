@@ -1,5 +1,5 @@
 <template>
-  <div class="container text-center">
+  <div class="no-gutter">
     <div class="row justify-content-center">
       <div class="col-auto">
         <button
@@ -51,11 +51,11 @@
     <div class="row justify-content-center py-3">
       <div class="col-auto" v-if="encryptionResult && state._file.state">
         <ul class="list-group">
-          <li class="list-group-item">
+          <li class="list-group-item text-break">
             <div class="fw-bold">Secret key</div>
             {{ encryptionResult.keyBase64 }}
           </li>
-          <li class="list-group-item">
+          <li class="list-group-item text-break">
             <div class="fw-bold">Nonce</div>
             {{ encryptionResult.nonceBase64 }}
           </li>
@@ -79,7 +79,7 @@ import {
   defineComponent,
   onBeforeUnmount,
   onMounted,
-  reactive,
+  reactive
 } from "vue";
 import { UploadFile, useUpload } from "@websanova/vue-upload";
 import { encryptBlob } from "@/utils/cryptography";
@@ -92,7 +92,7 @@ export default defineComponent({
       keyBase64: string;
     };
   } => ({
-    encryptionResult: undefined,
+    encryptionResult: undefined
   }),
   computed: {
     /** Allocate an object URL for encryptedFile. */
@@ -100,20 +100,20 @@ export default defineComponent({
       return this.encryptionResult?.cipherBlob
         ? URL.createObjectURL(this.encryptionResult.cipherBlob)
         : undefined;
-    },
+    }
   },
   watch: {
     /** Release old object URLs on change.  */
     encryptedFileURL(newURL: string, oldURL: string): void {
       if (oldURL) URL.revokeObjectURL(oldURL);
-    },
+    }
   },
   setup() {
     const upload = useUpload();
     const state = reactive({
       _file: computed(() => {
         return upload.file("the-file");
-      }),
+      })
     });
     function select() {
       upload.select("the-file");
@@ -121,7 +121,7 @@ export default defineComponent({
     onMounted(() => {
       upload.on("the-file", {
         startOnSelect: false,
-        maxSizePerFile: 1024 * 1024 * 3,
+        maxSizePerFile: 1024 * 1024 * 3
       });
     });
     onBeforeUnmount(() => {
@@ -129,14 +129,14 @@ export default defineComponent({
     });
     return {
       state,
-      select,
+      select
     };
   },
   methods: {
     /** Encrypt the given file to encryptionResult. */
     async encryptFile(uploadFile: UploadFile) {
       this.encryptionResult = await encryptBlob(uploadFile.$file);
-    },
-  },
+    }
+  }
 });
 </script>

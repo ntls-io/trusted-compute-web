@@ -5,11 +5,7 @@ export default createStore({
   state: {
     jwtToken: null
   },
-  getters: {
-    decodeJwt: state => {
-      return;
-    }
-  },
+  getters: {},
   mutations: {
     saveToken(state, token) {
       state.jwtToken = token;
