@@ -2,14 +2,15 @@
 // Source: https://sharedeus.eus.attest.azure.net/certs
 // TODO: File an issue or figure out what we are doing wrong
 import certs from "./certs.json";
-import { KEYUTIL, b64utohex, RSAKey, X509 } from "jsrsasign";
+import { b64utohex, RSAKey, X509 } from "jsrsasign";
 import { KJUR } from "jsrsasign";
+import { AttestationToken } from "./attestation-token";
 
 const ISSUER = "https://sharedeus.eus.attest.azure.net";
 
 // Keeping the function async since we will need it once the
 // we add the network call to get the certs
-export async function verifyToken(token: string): Promise<any> {
+export async function verifyToken(token: string): Promise<AttestationToken> {
   const [header, payload] = token.split(".");
 
   const headObj = KJUR.jws.JWS.readSafeJSONString(atob(header));
@@ -27,7 +28,12 @@ export async function verifyToken(token: string): Promise<any> {
   });
 
   if (isValid) {
-    return KJUR.jws.JWS.readSafeJSONString(atob(payload));
+    const payloadObj = KJUR.jws.JWS.readSafeJSONString(atob(payload));
+    if (payloadObj) {
+      return new AttestationToken(payloadObj as Record<string, unknown>);
+    } else {
+      throw new Error("Unsafe attestation payload");
+    }
   } else {
     throw new Error("Verification for JWT token failed");
   }
@@ -44,4 +50,3 @@ const getVerifyKey = (kid: string) => {
 
   return x509.getPublicKey() as RSAKey;
 };
-
