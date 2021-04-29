@@ -14,12 +14,14 @@
               <button
                 class="btn btn-primary btn-sm mx-1"
                 @click="copy($store.state.jwtToken)"
+                :disabled="!$store.state.jwtToken"
               >
                 Copy
               </button>
               <button
                 class="btn btn-primary btn-sm mx-1"
                 @click="getAttestation($store.state.jwtToken)"
+                :disabled="!$store.state.jwtToken"
               >
                 Validate
               </button>
