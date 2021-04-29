@@ -5,13 +5,23 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import FileUpload from "@/components/FileUpload.vue"; // @ is an alias to /src
+import { defineComponent, onMounted } from "vue";
+import { useStore } from "vuex";
+import FileUpload from "@/components/FileUpload.vue";
+import { verifyToken } from "@/utils/jwt";
 
 export default defineComponent({
   name: "Home",
   components: {
-    FileUpload,
+    FileUpload
   },
+  setup() {
+    const store = useStore();
+    onMounted(() => {
+      const token = store.state.jwtToken;
+
+      console.log(verifyToken(token));
+    });
+  }
 });
 </script>
