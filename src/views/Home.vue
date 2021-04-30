@@ -10,22 +10,24 @@
                 <el-button size="small" @click="fetchJWT()"> Fetch </el-button>
                 <el-button
                   size="small"
+                  type="primary"
                   @click="copy($store.state.jwtToken)"
-                  :disabled="!$store.state.jwtToken"
+                  :disabled="Boolean(!$store.state.jwtToken)"
                 >
                   Copy
                 </el-button>
                 <el-button
                   size="small"
+                  type="success"
                   @click="getAttestation($store.state.jwtToken)"
-                  :disabled="!$store.state.jwtToken"
+                  :disabled="Boolean(!$store.state.jwtToken)"
                 >
                   Validate
                 </el-button>
               </span>
             </div>
           </template>
-          <div>
+          <div class="text-break text-small">
             {{ $store.state.jwtToken }}
           </div>
         </el-card>
@@ -37,7 +39,7 @@
               <template #header>
                 <span>{{ key }}</span>
               </template>
-              <div>
+              <div class="text-break text-small">
                 {{ attestation[key] }}
               </div>
             </el-card>
@@ -67,6 +69,7 @@ import { defineComponent } from "vue";
 import useClipboard from "vue-clipboard3";
 import FileUpload from "@/components/FileUpload.vue";
 import { verifyToken } from "@/utils/jwt";
+import { ElNotification } from "element-plus";
 
 export default defineComponent({
   name: "Home",
@@ -87,8 +90,16 @@ export default defineComponent({
       try {
         await toClipboard(token);
         console.log("Copied to clipboard");
+        ElNotification({
+          type: "success",
+          message: "Copied to clipboard",
+          duration: 2500
+        });
       } catch (e) {
-        console.error(e);
+        ElNotification({
+          type: "error",
+          message: e
+        });
       }
     };
 
