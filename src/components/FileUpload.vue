@@ -23,6 +23,7 @@
           direction="horizontal"
           :column="1"
           border
+          size="small"
         >
           <el-descriptions-item label="Name">
             {{ state._file.name }}
@@ -38,31 +39,33 @@
           </el-descriptions-item>
         </el-descriptions>
 
-        <el-button
-          size="small"
-          type="danger"
-          v-show="state._file.state === 'queue'"
-          @click="
-            state._file.clear();
-            encryptionResult = undefined;
-          "
-        >
-          Remove File
-        </el-button>
+        <span style="display: flex; justify-content: space-between">
+          <el-button
+            size="small"
+            type="danger"
+            v-show="state._file.state === 'queue'"
+            @click="
+              state._file.clear();
+              encryptionResult = undefined;
+            "
+          >
+            Remove File
+          </el-button>
 
-        <el-button
-          size="small"
-          type="success"
-          v-show="state._file.state === 'queue'"
-          @click="encryptFile(state._file)"
-        >
-          Encrypt File
-        </el-button>
+          <el-button
+            size="small"
+            type="success"
+            v-show="state._file.state === 'queue'"
+            @click="encryptFile(state._file)"
+          >
+            Encrypt File
+          </el-button>
+        </span>
       </el-col>
     </el-row>
     <el-row>
       <el-col v-if="encryptionResult && state._file.state">
-        <el-descriptions direction="vertical" :column="1" border>
+        <el-descriptions direction="vertical" :column="1" border size="small">
           <el-descriptions-item label="Secret key">
             {{ encryptionResult.keyBase64 }}
           </el-descriptions-item>
