@@ -37,6 +37,12 @@
           <el-descriptions-item label="Extension">
             {{ state._file.extension }}
           </el-descriptions-item>
+          <el-descriptions-item label="Upload password">
+            {{uploadResult?.password}}
+          </el-descriptions-item>
+          <el-descriptions-item label="Upload uuid">
+            {{uploadResult?.uuid}}
+          </el-descriptions-item>
         </el-descriptions>
 
         <span style="display: flex; justify-content: space-between">
@@ -56,9 +62,9 @@
             size="small"
             type="success"
             v-show="state._file.state === 'queue'"
-            @click="encryptFile(state._file)"
+            @click="uploadFile(state._file)"
           >
-            Encrypt File
+            Encrypt and Upload File
           </el-button>
         </span>
       </el-col>
@@ -153,7 +159,7 @@ export default defineComponent({
     ...mapActions(["encryptAndUploadFile"]),
     /** Encrypt the given file to encryptionResult. */
     async uploadFile(uploadFile: UploadFile) {
-      this.encryptAndUploadFile(uploadFile);
+      this.encryptAndUploadFile(uploadFile.$file);
     }
   }
 });

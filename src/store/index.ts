@@ -43,7 +43,7 @@ export default createStore<State>({
     saveAttestationResult(state, attestationResult) {
       state.attestationResult = attestationResult;
     },
-    setSecretKey(state, secretKey: Base64) {
+    saveSecretKey(state, secretKey: Base64) {
       state.ourSecretKey = secretKey;
     },
     saveUploadResult(
@@ -74,7 +74,7 @@ export default createStore<State>({
     saveToken({ commit }, token) {
       commit("saveToken", token);
     },
-    async encryptAndUploadFile({ commit, getters }, message: File) {
+    async encryptAndUploadFile({ commit, dispatch, getters }, message: File) {
       const enclavePubKey = getters.enclavePublicKey;
       if (!enclavePubKey) {
         return null;
@@ -84,6 +84,15 @@ export default createStore<State>({
         enclavePubKey as Base64
       );
       commit("saveSecretKey", ourData.ourSecretKey);
+      // TODO: dispatch to the uploadfile action once an endpoint exists
+      dispatch("fakeUploadFile", {
+        metadata: { nonce: "asdf", uploader_pub_key: "slkasdlsdff" },
+        payload: "asd;fl;dslfsfl"
+      });
+    },
+    async fakeUploadFile({ commit, dispatch }, request: UploadRequest) {
+      const msg = Array(24 + 16).fill(12);
+      await dispatch("parseUploadMessage", msg);
     },
     async uploadFile({ commit, dispatch }, request: UploadRequest) {
       const res = await axios.post<UploadResponse>("example.com", request);
