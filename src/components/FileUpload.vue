@@ -96,6 +96,7 @@ import {
 } from "vue";
 import { UploadFile, useUpload } from "@websanova/vue-upload";
 import { encryptBlob } from "@/utils/cryptography";
+import { mapActions, mapState } from "vuex";
 
 export default defineComponent({
   data: (): {
@@ -108,12 +109,15 @@ export default defineComponent({
     encryptionResult: undefined
   }),
   computed: {
+    ...mapState([
+      'uploadResult',
+    ]),
     /** Allocate an object URL for encryptedFile. */
     encryptedFileURL(): string | undefined {
       return this.encryptionResult?.cipherBlob
         ? URL.createObjectURL(this.encryptionResult.cipherBlob)
         : undefined;
-    }
+    },
   },
   watch: {
     /** Release old object URLs on change.  */
@@ -146,9 +150,10 @@ export default defineComponent({
     };
   },
   methods: {
+    ...mapActions(["encryptAndUploadFile"]),
     /** Encrypt the given file to encryptionResult. */
-    async encryptFile(uploadFile: UploadFile) {
-      this.encryptionResult = await encryptBlob(uploadFile.$file);
+    async uploadFile(uploadFile: UploadFile) {
+      this.encryptAndUploadFile(uploadFile);
     }
   }
 });

@@ -11,9 +11,9 @@ import { AttestationToken } from "./attestation-token";
 
 const ISSUER = "https://sharedeus.eus.attest.azure.net";
 
-// Keeping the function async since we will need it once the
+// We should make the function async since we will need it once the
 // we add the network call to get the certs
-export async function verifyToken(token: string): Promise<AttestationToken> {
+export function verifyToken(token: string): AttestationToken {
   const [header, payload] = token.split(".");
 
   const headObj = KJUR.jws.JWS.readSafeJSONString(atob(header));
