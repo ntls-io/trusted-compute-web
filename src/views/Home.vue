@@ -7,7 +7,9 @@
             <div class="card-header">
               <span>JWT Token</span>
               <span>
-                <el-button size="small" @click="getAttestation()"> Fetch </el-button>
+                <el-button size="small" @click="getAttestation()">
+                  Fetch
+                </el-button>
                 <el-button
                   size="small"
                   type="primary"
@@ -15,14 +17,6 @@
                   :disabled="Boolean(!$store.state.jwtToken)"
                 >
                   Copy
-                </el-button>
-                <el-button
-                  size="small"
-                  type="success"
-                  @click="getAttestation($store.state.jwtToken)"
-                  :disabled="Boolean(!$store.state.jwtToken)"
-                >
-                  Validate
                 </el-button>
               </span>
             </div>
@@ -68,7 +62,6 @@
 import { defineComponent } from "vue";
 import useClipboard from "vue-clipboard3";
 import FileUpload from "@/components/FileUpload.vue";
-import { verifyToken } from "@/utils/jwt";
 import { ElNotification } from "element-plus";
 import { mapActions, mapState } from "vuex";
 
@@ -111,9 +104,9 @@ export default defineComponent({
   },
   computed: {
     ...mapState({
-      attestationResult: 'attestationResult',
-      jwtToken: 'jwtToken'
-    }),
+      attestationResult: "attestationResult",
+      jwtToken: "jwtToken"
+    })
   },
   methods: {
     ...mapActions(["requestAttestation"]),
