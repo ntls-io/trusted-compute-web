@@ -1,6 +1,9 @@
 // Cannot use endpoint since it does not allow any origin
 // Source: https://sharedeus.eus.attest.azure.net/certs
-// TODO: File an issue or figure out what we are doing wrong
+//
+// See Azure Community Space discussion:
+// https://techcommunity.microsoft.com/t5/azure/no-cors-headers-for-jwk-certs-for-azure-attestation/m-p/2277818
+//
 import certs from "./certs.json";
 import { b64utohex, RSAKey, X509 } from "jsrsasign";
 import { KJUR } from "jsrsasign";
