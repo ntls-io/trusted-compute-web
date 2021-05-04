@@ -158,7 +158,7 @@ export default defineComponent({
     ...mapActions(["encryptAndUploadFile"]),
     /** Encrypt the given file to encryptionResult. */
     async uploadFile(uploadFile: UploadFile) {
-      this.encryptAndUploadFile(uploadFile.$file);
+      await this.encryptAndUploadFile(uploadFile.$file);
     }
   }
 });
