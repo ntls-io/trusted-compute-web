@@ -38,10 +38,10 @@
             {{ state._file.extension }}
           </el-descriptions-item>
           <el-descriptions-item label="Upload password">
-            {{uploadResult?.password}}
+            {{ uploadResult?.password }}
           </el-descriptions-item>
           <el-descriptions-item label="Upload uuid">
-            {{uploadResult?.uuid}}
+            {{ uploadResult?.uuid }}
           </el-descriptions-item>
         </el-descriptions>
 
@@ -115,15 +115,13 @@ export default defineComponent({
     encryptionResult: undefined
   }),
   computed: {
-    ...mapState([
-      'uploadResult',
-    ]),
+    ...mapState(["uploadResult"]),
     /** Allocate an object URL for encryptedFile. */
     encryptedFileURL(): string | undefined {
       return this.encryptionResult?.cipherBlob
         ? URL.createObjectURL(this.encryptionResult.cipherBlob)
         : undefined;
-    },
+    }
   },
   watch: {
     /** Release old object URLs on change.  */
