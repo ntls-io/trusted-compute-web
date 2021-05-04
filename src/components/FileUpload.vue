@@ -6,9 +6,11 @@
           size="small"
           type="primary"
           :disabled="
-            state._file.state ||
-            state._file.state === 'success' ||
-            state._file.state === 'error'
+            Boolean(
+              state._file.state ||
+                state._file.state === 'success' ||
+                state._file.state === 'error'
+            )
           "
           @click="select"
         >
