@@ -28,13 +28,13 @@ export interface EncryptedMessage {
  */
 export async function encryptBlob(
   plainBlob: Blob,
-  enclavePublicKey: Base64
+  theirPublicKey: Base64
 ): Promise<EncryptedMessage> {
-  console.log("encryptBlob:", { plainBlob, enclavePublicKey });
+  console.log("encryptBlob:", { plainBlob, theirPublicKey });
   const plaintext = new Uint8Array(await plainBlob.arrayBuffer());
   const { ciphertext, nonce, ourPublicKey, ourSecretKey } = encryptBox(
     plaintext,
-    util.decodeBase64(enclavePublicKey)
+    util.decodeBase64(theirPublicKey)
   );
   console.log("encryptBlob ciphertext.length:", ciphertext.length);
 
@@ -60,13 +60,13 @@ export async function encryptBlob(
 export function decryptMessage(
   ciphertext: Base64,
   nonce: Base64,
-  enclavePubkey: Base64,
+  theirPublicKey: Base64,
   ourSecretKey: Base64
 ): Uint8Array | null {
   return decryptBox(
     util.decodeBase64(ciphertext),
     util.decodeBase64(nonce),
-    util.decodeBase64(enclavePubkey),
+    util.decodeBase64(theirPublicKey),
     util.decodeBase64(ourSecretKey)
   );
 }
@@ -76,35 +76,32 @@ export function decryptMessage(
  */
 function encryptBox(
   plaintext: Uint8Array,
-  enclavePubkey: Uint8Array
+  theirPublicKey: Uint8Array
 ): {
   ciphertext: Uint8Array;
   nonce: Uint8Array;
   ourPublicKey: Uint8Array;
   ourSecretKey: Uint8Array;
 } {
-  const { publicKey, secretKey } = nacl.box.keyPair();
+  const {
+    publicKey: ourPublicKey,
+    secretKey: ourSecretKey
+  } = nacl.box.keyPair();
   const nonce = nacl.randomBytes(nacl.box.nonceLength);
-  const ciphertext = nacl.box(plaintext, nonce, enclavePubkey, secretKey);
-
-  return {
-    ciphertext,
-    nonce,
-    ourPublicKey: publicKey,
-    ourSecretKey: secretKey
-  };
+  const ciphertext = nacl.box(plaintext, nonce, theirPublicKey, ourSecretKey);
+  return { ciphertext, nonce, ourPublicKey, ourSecretKey };
 }
 
 function decryptBox(
   ciphertext: Uint8Array,
   nonce: Uint8Array,
-  enclavePubkey: Uint8Array,
+  theirPublicKey: Uint8Array,
   ourSecretKey: Uint8Array
 ): Uint8Array | null {
   const plaintext = nacl.box.open(
     ciphertext,
     nonce,
-    enclavePubkey,
+    theirPublicKey,
     ourSecretKey
   );
   return plaintext;
