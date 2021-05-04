@@ -84,13 +84,14 @@ export default createStore<State>({
         enclavePubKey as Base64
       );
       commit("saveSecretKey", ourData.ourSecretKey);
-      // TODO: dispatch to the uploadfile action once an endpoint exists
+      console.warn("TODO: dispatch messageData to uploadFile:", messageData);
       dispatch("fakeUploadFile", {
         metadata: { nonce: "asdf", uploader_pub_key: "slkasdlsdff" },
         payload: "asd;fl;dslfsfl"
       });
     },
     async fakeUploadFile({ dispatch }, request: UploadRequest) {
+      console.warn("fakeUploadFile request:", request);
       const msg = Array(24 + 16).fill(12);
       await dispatch("parseUploadMessage", msg);
     },
