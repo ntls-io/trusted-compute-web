@@ -3,6 +3,7 @@ const esm = ["@websanova/vue-upload"];
 
 module.exports = {
   preset: "@vue/cli-plugin-components-jest/presets/typescript-and-babel",
+  setupFilesAfterEnv: ["./tests/components/setup-vue.ts"],
   transform: {
     "^.+\\.vue$": "vue-jest"
   },
