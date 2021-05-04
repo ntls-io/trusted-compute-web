@@ -112,7 +112,7 @@ export default defineComponent({
     ...mapActions(["requestAttestation"]),
     async getAttestation() {
       this.busy.fetchingToken = true;
-      this.requestAttestation();
+      await this.requestAttestation();
       this.attestation = this.attestationResult;
       console.log("Home.getAttestation result:", this.attestationResult);
       this.busy.fetchingToken = false;
