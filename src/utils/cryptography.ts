@@ -72,21 +72,8 @@ export function decryptMessage(
 }
 
 /**
- * Helper: Encrypt data using NaCl secretbox with a new secret key.
+ * Helper: Encrypt data to a NaCl box with a new local key pair.
  */
-function encryptSecretbox(
-  plaintext: Uint8Array
-): {
-  ciphertext: Uint8Array;
-  key: Uint8Array;
-  nonce: Uint8Array;
-} {
-  const nonce = nacl.randomBytes(nacl.secretbox.nonceLength);
-  const key = nacl.randomBytes(nacl.secretbox.keyLength);
-  const ciphertext = nacl.secretbox(plaintext, nonce, key);
-  return { ciphertext, key, nonce };
-}
-
 function encryptBox(
   plaintext: Uint8Array,
   enclavePubkey: Uint8Array
