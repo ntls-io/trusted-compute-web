@@ -24,10 +24,10 @@ export async function encryptBlob(
   const { ciphertext, key, nonce } = encryptSecretbox(plaintext);
   return {
     cipherBlob: new Blob([ciphertext.buffer], {
-      type: "application/octet-stream",
+      type: "application/octet-stream"
     }),
     keyBase64: util.encodeBase64(key),
-    nonceBase64: util.encodeBase64(nonce),
+    nonceBase64: util.encodeBase64(nonce)
   };
 }
 

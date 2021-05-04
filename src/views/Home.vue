@@ -1,17 +1,136 @@
 <template>
-  <div class="home">
-    <FileUpload />
-  </div>
+  <el-main>
+    <el-row :gutter="10">
+      <el-col :span="16">
+        <el-card v-loading="busy.fetchingToken">
+          <template #header>
+            <div class="card-header">
+              <span>JWT Token</span>
+              <span>
+                <el-button size="small" @click="fetchJWT()"> Fetch </el-button>
+                <el-button
+                  size="small"
+                  type="primary"
+                  @click="copy($store.state.jwtToken)"
+                  :disabled="Boolean(!$store.state.jwtToken)"
+                >
+                  Copy
+                </el-button>
+                <el-button
+                  size="small"
+                  type="success"
+                  @click="getAttestation($store.state.jwtToken)"
+                  :disabled="Boolean(!$store.state.jwtToken)"
+                >
+                  Validate
+                </el-button>
+              </span>
+            </div>
+          </template>
+          <div class="text-break text-small">
+            {{ $store.state.jwtToken }}
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="8">
+        <el-row :gutter="15">
+          <el-col v-for="(key, i) in user_attestation" :key="i">
+            <el-card>
+              <template #header>
+                <span>{{ key }}</span>
+              </template>
+              <div class="text-break text-small">
+                {{ attestation[key] }}
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+        <div>
+          <FileUpload />
+        </div>
+      </el-col>
+    </el-row>
+  </el-main>
 </template>
+
+<style lang="scss" scoped>
+.el-col {
+  margin-bottom: 10px;
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+</style>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import FileUpload from "@/components/FileUpload.vue"; // @ is an alias to /src
+import useClipboard from "vue-clipboard3";
+import FileUpload from "@/components/FileUpload.vue";
+import { verifyToken } from "@/utils/jwt";
+import { ElNotification } from "element-plus";
 
 export default defineComponent({
   name: "Home",
   components: {
-    FileUpload,
+    FileUpload
   },
+  data() {
+    return {
+      attestation: {},
+      user_attestation: ["mrsigner", "mrenclave"],
+      busy: { fetchingToken: false }
+    };
+  },
+  setup() {
+    const { toClipboard } = useClipboard();
+
+    const copy = async (token: string) => {
+      try {
+        await toClipboard(token);
+        console.log("Copied to clipboard");
+        ElNotification({
+          type: "success",
+          message: "Copied to clipboard",
+          duration: 2500
+        });
+      } catch (e) {
+        ElNotification({
+          type: "error",
+          message: e
+        });
+      }
+    };
+
+    return { copy };
+  },
+  async mounted() {
+    await this.fetchJWT();
+  },
+  methods: {
+    async fetchJWT() {
+      this.busy.fetchingToken = true;
+      await this.axios
+        .get(
+          process.env.VUE_APP_JWT_URL ??
+            "https://rtc-data.registree.io/data/attest"
+        )
+        .then(({ status, data }) => {
+          if (status === 200) {
+            this.$store.dispatch("saveToken", data);
+            this.attestation = {};
+          }
+        })
+        .finally(() => {
+          this.busy.fetchingToken = false;
+        });
+    },
+    async getAttestation(token: string) {
+      await verifyToken(token).then(result => {
+        this.attestation = result;
+      });
+    }
+  }
 });
 </script>

@@ -6,11 +6,11 @@ export default (app: App): void => {
   app.use(
     createUpload({
       plugins: {
-        http: app.axios,
+        http: app.axios
       },
       drivers: {
-        http: driverHttpAxios,
-      },
+        http: driverHttpAxios
+      }
     })
   );
 };
