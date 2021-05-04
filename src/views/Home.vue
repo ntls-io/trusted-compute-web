@@ -105,8 +105,8 @@ export default defineComponent({
 
     return { copy };
   },
-  mounted() {
-    this.fetchJWT();
+  async mounted() {
+    await this.fetchJWT();
   },
   methods: {
     async fetchJWT() {
