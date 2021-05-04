@@ -28,7 +28,7 @@ export default createStore<State>({
     uploadResult: null
   },
   getters: {
-    enclavePublicKey(state, getters) {
+    enclavePublicKey(state) {
       const token = state.attestationResult;
       if (token == null) {
         return null;
@@ -90,11 +90,11 @@ export default createStore<State>({
         payload: "asd;fl;dslfsfl"
       });
     },
-    async fakeUploadFile({ commit, dispatch }, request: UploadRequest) {
+    async fakeUploadFile({ dispatch }, request: UploadRequest) {
       const msg = Array(24 + 16).fill(12);
       await dispatch("parseUploadMessage", msg);
     },
-    async uploadFile({ commit, dispatch }, request: UploadRequest) {
+    async uploadFile({ dispatch }, request: UploadRequest) {
       const res = await axios.post<UploadResponse>("example.com", request);
       if (res.status !== 200) {
         return "error";
@@ -102,7 +102,7 @@ export default createStore<State>({
       await dispatch("decryptUploadResponse", res.data);
     },
     async decryptUploadResponse(
-      { commit, state, dispatch, getters },
+      { state, dispatch, getters },
       response: UploadResponse
     ) {
       const enclavePubKey = getters.enclavePublicKey;
@@ -120,7 +120,7 @@ export default createStore<State>({
       }
       await dispatch("parseUploadMessage", msg);
     },
-    async parseUploadMessage({ commit, state }, message: Uint8Array) {
+    async parseUploadMessage({ commit }, message: Uint8Array) {
       console.log(message);
       const password = btoa(message.slice(0, 24).toString());
       const uuid = message.slice(24);
