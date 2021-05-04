@@ -30,14 +30,13 @@ export async function encryptBlob(
   plainBlob: Blob,
   enclavePublicKey: Base64
 ): Promise<EncryptedMessage> {
-  console.log(plainBlob);
+  console.log("encryptBlob:", { plainBlob, enclavePublicKey });
   const plaintext = new Uint8Array(await plainBlob.arrayBuffer());
   const { ciphertext, nonce, ourPublicKey, ourSecretKey } = encryptBox(
     plaintext,
     util.decodeBase64(enclavePublicKey)
   );
-  console.log("enclavePubkey: " + enclavePublicKey.toString());
-  console.log("ciphertext: " + ciphertext.length);
+  console.log("encryptBlob ciphertext.length:", ciphertext.length);
 
   return {
     ourData: {

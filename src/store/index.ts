@@ -122,7 +122,7 @@ export default createStore<State>({
       await dispatch("parseUploadMessage", msg);
     },
     async parseUploadMessage({ commit }, message: Uint8Array) {
-      console.log(message);
+      console.log("parseUploadMessage:", message);
       const password = btoa(message.slice(0, 24).toString());
       const uuid = message.slice(24);
       commit("saveUploadResult", { password, uuid });

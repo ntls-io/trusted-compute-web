@@ -114,7 +114,7 @@ export default defineComponent({
       this.busy.fetchingToken = true;
       this.requestAttestation();
       this.attestation = this.attestationResult;
-      console.log(this.attestationResult);
+      console.log("Home.getAttestation result:", this.attestationResult);
       this.busy.fetchingToken = false;
     }
   }
