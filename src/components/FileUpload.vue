@@ -101,7 +101,6 @@ import {
   reactive
 } from "vue";
 import { UploadFile, useUpload } from "@websanova/vue-upload";
-import { encryptBlob } from "@/utils/cryptography";
 import { mapActions, mapState } from "vuex";
 
 export default defineComponent({
