@@ -1,23 +1,131 @@
 import { createLogger, createStore } from "vuex";
+import tokenFile from "./token.json";
+import { encryptBlob, Base64, decryptMessage } from "@/utils/cryptography";
+import { verifyToken } from "@/utils/jwt";
+import { AttestationToken } from "@/utils/attestation-token";
+import base64url from "base64url";
+import {
+  Request as UploadRequest,
+  Response as UploadResponse
+} from "@/models/data-upload";
+import axios from "axios";
 
-// XXX: Default local token, for testing only
-const token =
-  "eyJhbGciOiJSUzI1NiIsImprdSI6Imh0dHBzOi8vc2hhcmVkZXVzLmV1cy5hdHRlc3QuYXp1cmUubmV0L2NlcnRzIiwia2lkIjoibEgvVlE5VEw1M2NYcGVGdDNWZjl0aU92K3JrV3dWKzVQYmlOemdXY3lTUT0iLCJ0eXAiOiJKV1QifQ.eyJhYXMtZWhkIjoiTzFXeVFrRzFmQ3BSTnFPNEtvR0dGTi1ZbHBnd3RrZ2JIZmNrbjZGZEhTayIsImV4cCI6MTYxOTgwMDgyNywiaWF0IjoxNjE5NzcyMDI3LCJpcy1kZWJ1Z2dhYmxlIjp0cnVlLCJpc3MiOiJodHRwczovL3NoYXJlZGV1cy5ldXMuYXR0ZXN0LmF6dXJlLm5ldCIsImp0aSI6ImQ5MDYyMDk3NzAwZTNlY2Y0NGQzOWY5ODhjNWFhYzEwYmQ2ZmNhNWViN2U4ZjNkMjk0NTIxMDlhZGI2MDMxZjkiLCJtYWEtYXR0ZXN0YXRpb25jb2xsYXRlcmFsIjp7InFlaWRjZXJ0c2hhc2giOiIxYjJhN2NkNTk2NjkyOWFlYzFlMDYxZjQ3YWJhMDNhZTQyMmMxMWU5ZjhkY2U0MjEyYzJiYjM2MDkyMjJmMzI0IiwicWVpZGNybGhhc2giOiI1Yjk5MjllZTAwMzZkNzFmOTA4MGNiZGM0ODg2MGZjMzVmODNlZjhlODcwMzYxYWJjZDgzZmEyZDNiOTY5MjQ5IiwicWVpZGhhc2giOiI1ZDFiMTFkNzg3NDM1ZjcwOTBjNTk1ZTA5YjVmM2U1N2ZiMDkzMmE0M2Q5NmI1YTcwNjIyZGYxMTJlNDY3YjEyIiwicXVvdGVoYXNoIjoiZDk4MDZmMjQ4MmUxMWNmMGRjYzdkMmE2ZmNiMGEzNTFjYmViYTdjZDFhZWU0MmUzMDBkMDlkOWVmODIyZmM5NyIsInRjYmluZm9jZXJ0c2hhc2giOiIxYjJhN2NkNTk2NjkyOWFlYzFlMDYxZjQ3YWJhMDNhZTQyMmMxMWU5ZjhkY2U0MjEyYzJiYjM2MDkyMjJmMzI0IiwidGNiaW5mb2NybGhhc2giOiI1Yjk5MjllZTAwMzZkNzFmOTA4MGNiZGM0ODg2MGZjMzVmODNlZjhlODcwMzYxYWJjZDgzZmEyZDNiOTY5MjQ5IiwidGNiaW5mb2hhc2giOiI3NzZlNmMzYTNkNGY5MGRiYmFjNTAwMDBlZDdmODg1NzRmZDYyOTMwYzM5N2UwNDlkNGMzZWFiNGJjNjA2ODMwIn0sIm1hYS1laGQiOiJPMVd5UWtHMWZDcFJOcU80S29HR0ZOLVlscGd3dGtnYkhmY2tuNkZkSFNrIiwibmJmIjoxNjE5NzcyMDI3LCJwcm9kdWN0LWlkIjowLCJzZ3gtbXJlbmNsYXZlIjoiODYwOWEwMWQ3OWIwNWM0NjhmODRmNTQ2NzEzMGZmNDVjOGFhZDk1NTdhMjAwMmE2OGU3OWE4NDgxMTM2N2YzNCIsInNneC1tcnNpZ25lciI6IjgzZDcxOWU3N2RlYWNhMTQ3MGY2YmFmNjJhNGQ3NzQzMDNjODk5ZGI2OTAyMGY5YzcwZWUxZGZjMDhjN2NlOWUiLCJzdm4iOjAsInRlZSI6InNneCIsIngtbXMtYXR0ZXN0YXRpb24tdHlwZSI6InNneCIsIngtbXMtcG9saWN5LWhhc2giOiJiUk9yTjg5N1pmV21XWTJWMEZMVWx1M3V3azV4YXRHbktZSG4zekJiU2x3IiwieC1tcy1zZ3gtY29sbGF0ZXJhbCI6eyJxZWlkY2VydHNoYXNoIjoiMWIyYTdjZDU5NjY5MjlhZWMxZTA2MWY0N2FiYTAzYWU0MjJjMTFlOWY4ZGNlNDIxMmMyYmIzNjA5MjIyZjMyNCIsInFlaWRjcmxoYXNoIjoiNWI5OTI5ZWUwMDM2ZDcxZjkwODBjYmRjNDg4NjBmYzM1ZjgzZWY4ZTg3MDM2MWFiY2Q4M2ZhMmQzYjk2OTI0OSIsInFlaWRoYXNoIjoiNWQxYjExZDc4NzQzNWY3MDkwYzU5NWUwOWI1ZjNlNTdmYjA5MzJhNDNkOTZiNWE3MDYyMmRmMTEyZTQ2N2IxMiIsInF1b3RlaGFzaCI6ImQ5ODA2ZjI0ODJlMTFjZjBkY2M3ZDJhNmZjYjBhMzUxY2JlYmE3Y2QxYWVlNDJlMzAwZDA5ZDllZjgyMmZjOTciLCJ0Y2JpbmZvY2VydHNoYXNoIjoiMWIyYTdjZDU5NjY5MjlhZWMxZTA2MWY0N2FiYTAzYWU0MjJjMTFlOWY4ZGNlNDIxMmMyYmIzNjA5MjIyZjMyNCIsInRjYmluZm9jcmxoYXNoIjoiNWI5OTI5ZWUwMDM2ZDcxZjkwODBjYmRjNDg4NjBmYzM1ZjgzZWY4ZTg3MDM2MWFiY2Q4M2ZhMmQzYjk2OTI0OSIsInRjYmluZm9oYXNoIjoiNzc2ZTZjM2EzZDRmOTBkYmJhYzUwMDAwZWQ3Zjg4NTc0ZmQ2MjkzMGMzOTdlMDQ5ZDRjM2VhYjRiYzYwNjgzMCJ9LCJ4LW1zLXNneC1laGQiOiJPMVd5UWtHMWZDcFJOcU80S29HR0ZOLVlscGd3dGtnYkhmY2tuNkZkSFNrIiwieC1tcy1zZ3gtaXMtZGVidWdnYWJsZSI6dHJ1ZSwieC1tcy1zZ3gtbXJlbmNsYXZlIjoiODYwOWEwMWQ3OWIwNWM0NjhmODRmNTQ2NzEzMGZmNDVjOGFhZDk1NTdhMjAwMmE2OGU3OWE4NDgxMTM2N2YzNCIsIngtbXMtc2d4LW1yc2lnbmVyIjoiODNkNzE5ZTc3ZGVhY2ExNDcwZjZiYWY2MmE0ZDc3NDMwM2M4OTlkYjY5MDIwZjljNzBlZTFkZmMwOGM3Y2U5ZSIsIngtbXMtc2d4LXByb2R1Y3QtaWQiOjAsIngtbXMtc2d4LXN2biI6MCwieC1tcy12ZXIiOiIxLjAifQ.W0F2edttpeV4s9p-LT0T4BflXHKH-j3qiz3fvSGxcyU2EVwfe7o7ZyohHSqtThtmntCJP0hZ7slVXtpZTaegq_EZAGP-q8JGDGSndb6Y8xXcMdDEH8NFGSxg1mo6c_EUXwCd3-3E14PFqD2PjS6kfr1j8QeYwsSFc_MHYIDx5EM";
+export interface State {
+  jwtToken: string | null;
+  ourSecretKey: Base64 | null;
+  attestationResult: AttestationToken | null;
+  uploadResult: { accessKey: string; uuid: Uint8Array } | null;
+}
 
-export default createStore({
+// TODO: add typescript typings for Vuex
+// See: https://next.vuex.vuejs.org/guide/typescript-support.html#typing-store-property-in-vue-component
+export default createStore<State>({
   plugins: process.env.NODE_ENV !== "production" ? [createLogger()] : [],
   state: {
-    jwtToken: token
+    jwtToken: null,
+    ourSecretKey: null,
+    attestationResult: null,
+    uploadResult: null
   },
-  getters: {},
+  getters: {
+    enclavePublicKey(state) {
+      const token = state.attestationResult;
+      if (token == null) {
+        return null;
+      }
+      return base64url.toBase64(token.enclaveHeldData);
+    }
+  },
   mutations: {
     saveToken(state, token) {
       state.jwtToken = token;
+    },
+    saveAttestationResult(state, attestationResult) {
+      state.attestationResult = attestationResult;
+    },
+    saveSecretKey(state, secretKey: Base64) {
+      state.ourSecretKey = secretKey;
+    },
+    saveUploadResult(
+      state,
+      uploadResult: { accessKey: string; uuid: Uint8Array }
+    ) {
+      state.uploadResult = uploadResult;
     }
   },
   actions: {
+    async requestAttestation({ commit }) {
+      // await this.axios
+      //   .get(
+      //     process.env.VUE_APP_JWT_URL ??
+      //     "https://rtc-data.registree.io/data/attest"
+      //   )
+      //   .then(({ status, data }) => {
+      //     if (status === 200) {
+      //       this.$store.dispatch("saveToken", data);
+      //       this.attestation = {};
+      //     }
+      //   })
+      // TODO: get token from endpoint
+      const attestationResult = verifyToken(tokenFile.token);
+      commit("saveToken", tokenFile.token);
+      commit("saveAttestationResult", attestationResult);
+    },
     saveToken({ commit }, token) {
       commit("saveToken", token);
+    },
+    async encryptAndUploadFile({ commit, dispatch, getters }, message: File) {
+      const enclavePubKey = getters.enclavePublicKey;
+      if (!enclavePubKey) {
+        return null;
+      }
+      const { ourData, messageData } = await encryptBlob(
+        message,
+        enclavePubKey as Base64
+      );
+      commit("saveSecretKey", ourData.ourSecretKey);
+      console.warn("TODO: dispatch messageData to uploadFile:", messageData);
+      dispatch("fakeUploadFile", {
+        metadata: { nonce: "asdf", uploader_pub_key: "slkasdlsdff" },
+        payload: "asd;fl;dslfsfl"
+      });
+    },
+    async fakeUploadFile({ dispatch }, request: UploadRequest) {
+      console.warn("fakeUploadFile request:", request);
+      const msg = Array(24 + 16).fill(12);
+      await dispatch("parseUploadMessage", msg);
+    },
+    async uploadFile({ dispatch }, request: UploadRequest) {
+      const res = await axios.post<UploadResponse>("example.com", request);
+      if (res.status !== 200) {
+        return "error";
+      }
+      await dispatch("decryptUploadResponse", res.data);
+    },
+    async decryptUploadResponse(
+      { state, dispatch, getters },
+      response: UploadResponse
+    ) {
+      const enclavePubKey = getters.enclavePublicKey;
+      if (!enclavePubKey || !state.ourSecretKey) {
+        return "error";
+      }
+      const msg = decryptMessage(
+        response.ciphertext,
+        response.nonce,
+        enclavePubKey,
+        state.ourSecretKey
+      );
+      if (!msg) {
+        return "error";
+      }
+      await dispatch("parseUploadMessage", msg);
+    },
+    async parseUploadMessage({ commit }, message: Uint8Array) {
+      console.log("parseUploadMessage:", message);
+      const accessKey = btoa(message.slice(0, 24).toString());
+      const uuid = message.slice(24);
+      commit("saveUploadResult", { accessKey, uuid });
     }
   },
   modules: {}

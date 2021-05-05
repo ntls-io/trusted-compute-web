@@ -6,9 +6,11 @@
           size="small"
           type="primary"
           :disabled="
-            state._file.state ||
-            state._file.state === 'success' ||
-            state._file.state === 'error'
+            Boolean(
+              state._file.state ||
+                state._file.state === 'success' ||
+                state._file.state === 'error'
+            )
           "
           @click="select"
         >
@@ -37,6 +39,12 @@
           <el-descriptions-item label="Extension">
             {{ state._file.extension }}
           </el-descriptions-item>
+          <el-descriptions-item label="Upload access key">
+            {{ uploadResult?.accessKey }}
+          </el-descriptions-item>
+          <el-descriptions-item label="Upload uuid">
+            {{ uploadResult?.uuid }}
+          </el-descriptions-item>
         </el-descriptions>
 
         <span style="display: flex; justify-content: space-between">
@@ -56,9 +64,9 @@
             size="small"
             type="success"
             v-show="state._file.state === 'queue'"
-            @click="encryptFile(state._file)"
+            @click="uploadFile(state._file)"
           >
-            Encrypt File
+            Encrypt and Upload File
           </el-button>
         </span>
       </el-col>
@@ -95,7 +103,7 @@ import {
   reactive
 } from "vue";
 import { UploadFile, useUpload } from "@websanova/vue-upload";
-import { encryptBlob } from "@/utils/cryptography";
+import { mapActions, mapState } from "vuex";
 
 export default defineComponent({
   data: (): {
@@ -108,6 +116,7 @@ export default defineComponent({
     encryptionResult: undefined
   }),
   computed: {
+    ...mapState(["uploadResult"]),
     /** Allocate an object URL for encryptedFile. */
     encryptedFileURL(): string | undefined {
       return this.encryptionResult?.cipherBlob
@@ -146,9 +155,10 @@ export default defineComponent({
     };
   },
   methods: {
+    ...mapActions(["encryptAndUploadFile"]),
     /** Encrypt the given file to encryptionResult. */
-    async encryptFile(uploadFile: UploadFile) {
-      this.encryptionResult = await encryptBlob(uploadFile.$file);
+    async uploadFile(uploadFile: UploadFile) {
+      await this.encryptAndUploadFile(uploadFile.$file);
     }
   }
 });

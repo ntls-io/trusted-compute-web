@@ -7,7 +7,9 @@
             <div class="card-header">
               <span>JWT Token</span>
               <span>
-                <el-button size="small" @click="fetchJWT()"> Fetch </el-button>
+                <el-button size="small" @click="getAttestation()">
+                  Fetch
+                </el-button>
                 <el-button
                   size="small"
                   type="primary"
@@ -15,14 +17,6 @@
                   :disabled="Boolean(!$store.state.jwtToken)"
                 >
                   Copy
-                </el-button>
-                <el-button
-                  size="small"
-                  type="success"
-                  @click="getAttestation($store.state.jwtToken)"
-                  :disabled="Boolean(!$store.state.jwtToken)"
-                >
-                  Validate
                 </el-button>
               </span>
             </div>
@@ -68,8 +62,8 @@
 import { defineComponent } from "vue";
 import useClipboard from "vue-clipboard3";
 import FileUpload from "@/components/FileUpload.vue";
-import { verifyToken } from "@/utils/jwt";
 import { ElNotification } from "element-plus";
+import { mapActions, mapState } from "vuex";
 
 export default defineComponent({
   name: "Home",
@@ -106,30 +100,22 @@ export default defineComponent({
     return { copy };
   },
   async mounted() {
-    await this.fetchJWT();
+    await this.getAttestation();
+  },
+  computed: {
+    ...mapState({
+      attestationResult: "attestationResult",
+      jwtToken: "jwtToken"
+    })
   },
   methods: {
-    async fetchJWT() {
+    ...mapActions(["requestAttestation"]),
+    async getAttestation() {
       this.busy.fetchingToken = true;
-      await this.axios
-        .get(
-          process.env.VUE_APP_JWT_URL ??
-            "https://rtc-data.registree.io/data/attest"
-        )
-        .then(({ status, data }) => {
-          if (status === 200) {
-            this.$store.dispatch("saveToken", data);
-            this.attestation = {};
-          }
-        })
-        .finally(() => {
-          this.busy.fetchingToken = false;
-        });
-    },
-    async getAttestation(token: string) {
-      await verifyToken(token).then(result => {
-        this.attestation = result;
-      });
+      await this.requestAttestation();
+      this.attestation = this.attestationResult;
+      console.log("Home.getAttestation result:", this.attestationResult);
+      this.busy.fetchingToken = false;
     }
   }
 });
