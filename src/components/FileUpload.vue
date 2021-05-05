@@ -39,8 +39,8 @@
           <el-descriptions-item label="Extension">
             {{ state._file.extension }}
           </el-descriptions-item>
-          <el-descriptions-item label="Upload password">
-            {{ uploadResult?.password }}
+          <el-descriptions-item label="Upload access key">
+            {{ uploadResult?.accessKey }}
           </el-descriptions-item>
           <el-descriptions-item label="Upload uuid">
             {{ uploadResult?.uuid }}

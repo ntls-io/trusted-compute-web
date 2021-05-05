@@ -14,7 +14,7 @@ export interface State {
   jwtToken: string | null;
   ourSecretKey: Base64 | null;
   attestationResult: AttestationToken | null;
-  uploadResult: { password: string; uuid: Uint8Array } | null;
+  uploadResult: { accessKey: string; uuid: Uint8Array } | null;
 }
 
 // TODO: add typescript typings for Vuex
@@ -48,7 +48,7 @@ export default createStore<State>({
     },
     saveUploadResult(
       state,
-      uploadResult: { password: string; uuid: Uint8Array }
+      uploadResult: { accessKey: string; uuid: Uint8Array }
     ) {
       state.uploadResult = uploadResult;
     }
@@ -123,9 +123,9 @@ export default createStore<State>({
     },
     async parseUploadMessage({ commit }, message: Uint8Array) {
       console.log("parseUploadMessage:", message);
-      const password = btoa(message.slice(0, 24).toString());
+      const accessKey = btoa(message.slice(0, 24).toString());
       const uuid = message.slice(24);
-      commit("saveUploadResult", { password, uuid });
+      commit("saveUploadResult", { accessKey, uuid });
     }
   },
   modules: {}
