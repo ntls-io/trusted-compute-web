@@ -38,7 +38,6 @@
           </el-card>
         </el-col>
       </el-row>
-      <slot name="fileUpload"></slot>
     </el-col>
   </el-row>
 </template>

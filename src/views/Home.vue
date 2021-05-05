@@ -1,14 +1,11 @@
 <template>
   <el-main>
     <div>
-      <Attestation>
-        <template v-slot:fileUpload>
-          <div>
-            <FileUpload />
-          </div>
-        </template>
-      </Attestation>
+      <Attestation />
     </div>
+    <el-row>
+      <el-col :span="16"> <FileUpload /></el-col>
+    </el-row>
   </el-main>
 </template>
 
