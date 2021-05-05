@@ -1,10 +1,13 @@
 <template>
   <el-main>
-    <div>
-      <Attestation />
-    </div>
-    <el-row>
-      <el-col :span="16"> <FileUpload /></el-col>
+    <el-row :gutter="10">
+      <el-col :span="16">
+        <JwtDisplay />
+      </el-col>
+      <el-col :span="8">
+        <Attestation />
+        <FileUpload />
+      </el-col>
     </el-row>
   </el-main>
 </template>
@@ -12,6 +15,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import FileUpload from "@/components/FileUpload.vue";
+import JwtDisplay from "@/components/JwtDisplay.vue";
 import Attestation from "@/components/Attestation.vue";
 import { mapActions } from "vuex";
 
@@ -19,7 +23,8 @@ export default defineComponent({
   name: "Home",
   components: {
     Attestation,
-    FileUpload
+    FileUpload,
+    JwtDisplay
   },
   async mounted() {
     await this.getAttestation();

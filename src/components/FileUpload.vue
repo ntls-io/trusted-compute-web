@@ -5,8 +5,8 @@
         <el-button
           size="small"
           type="primary"
-          :disabled="
-            Boolean(
+          v-if="
+            !Boolean(
               state._file.state ||
                 state._file.state === 'success' ||
                 state._file.state === 'error'
