@@ -6,6 +6,7 @@
       </el-col>
       <el-col :span="8">
         <Attestation />
+        <AccessForm />
       </el-col>
     </el-row>
   </el-main>
@@ -15,12 +16,14 @@
 import { defineComponent } from "vue";
 import JwtDisplay from "@/components/JwtDisplay.vue";
 import Attestation from "@/components/Attestation.vue";
+import AccessForm from "@/components/AccessForm.vue";
 import { mapActions } from "vuex";
 
 export default defineComponent({
   name: "Data Access",
   components: {
     Attestation,
+    AccessForm,
     JwtDisplay
   },
   async mounted() {
