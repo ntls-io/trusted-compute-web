@@ -1,5 +1,5 @@
 <template>
-  <el-form label-position="top" :model="form">
+  <el-form label-width="auto" :model="form">
     <el-form-item label="Key">
       <el-input
         v-model="form.access_key"
@@ -54,9 +54,3 @@ export default defineComponent({
   }
 });
 </script>
-
-<style lang="scss" scoped>
-.el-form-item {
-  margin-bottom: 0;
-}
-</style>
