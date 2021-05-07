@@ -17,7 +17,7 @@
     <el-form-item label="Hash">
       <el-input
         v-model="form.hash"
-        placeholder="SHA 256 hash of the binary that the data"
+        placeholder="SHA-256 of the binary to authorise"
         required
       ></el-input>
     </el-form-item>
