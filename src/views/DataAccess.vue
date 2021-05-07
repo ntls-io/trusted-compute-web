@@ -20,7 +20,7 @@ import AccessForm from "@/components/AccessForm.vue";
 import { mapActions } from "vuex";
 
 export default defineComponent({
-  name: "Data Access",
+  name: "DataAccess",
   components: {
     Attestation,
     AccessForm,
