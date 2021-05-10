@@ -27,11 +27,10 @@ export interface EncryptedMessage {
  * @see https://github.com/bcomnes/nacl-blob
  */
 export async function encryptBlob(
-  plainBlob: Blob,
+  plaintext: Uint8Array,
   theirPublicKey: Base64
 ): Promise<EncryptedMessage> {
-  console.log("encryptBlob:", { plainBlob, theirPublicKey });
-  const plaintext = new Uint8Array(await plainBlob.arrayBuffer());
+  console.log("encryptBlob:", { plaintext, theirPublicKey });
   const { ciphertext, nonce, ourPublicKey, ourSecretKey } = encryptBox(
     plaintext,
     util.decodeBase64(theirPublicKey)
@@ -48,13 +47,12 @@ export async function encryptBlob(
       ciphertext: util.encodeBase64(ciphertext)
     }
   };
-
   ///** Not using blob return type for now since the metadata is passed alongside
   ///** the upload data as base46. We should change the strategy here
   ///** in the future
   //   cipherBlob: new Blob([ciphertext.buffer], {
   //     type: "application/octet-stream"
-  //   }),
+  //   })
 }
 
 export function decryptMessage(

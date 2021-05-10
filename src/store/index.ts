@@ -77,7 +77,7 @@ export default createStore<State>({
         return null;
       }
       const { ourData, messageData } = await encryptBlob(
-        message,
+        new Uint8Array(await message.arrayBuffer()),
         enclavePubKey as Base64
       );
       commit("saveSecretKey", ourData.ourSecretKey);
