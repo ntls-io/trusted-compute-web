@@ -6,6 +6,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/",
     name: "Home",
     component: Home
+  },
+  {
+    path: "/data-access",
+    name: "Data Access",
+    component: () => import("@/views/DataAccess.vue")
   }
 ];
 
