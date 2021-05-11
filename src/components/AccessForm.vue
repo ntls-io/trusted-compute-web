@@ -4,6 +4,7 @@
       <el-input
         v-model="form.access_key"
         placeholder="Data access key"
+        type="password"
         required
       ></el-input>
     </el-form-item>
@@ -36,20 +37,24 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { encryptBlob } from "@/utils/cryptography";
+
 export default defineComponent({
   data() {
     return {
       form: {
-        access_key: "",
-        uuid: "",
-        hash: "",
+        access_key: null,
+        uuid: null,
+        hash: null,
         nofu: 1
       }
     };
   },
   methods: {
     onSubmit() {
-      console.log("AccessForm submit:", this.form);
+      const encodedForm = new TextEncoder().encode(JSON.stringify(this.form));
+      const enclavePublicKey = this.$store.getters.enclavePublicKey;
+      encryptBlob(encodedForm, enclavePublicKey);
     }
   }
 });
