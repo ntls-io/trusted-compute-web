@@ -55,20 +55,17 @@ export default createStore<State>({
   },
   actions: {
     async requestAttestation({ commit }) {
-      // await this.axios
-      //   .get(
-      //     process.env.VUE_APP_JWT_URL ??
-      //     "https://rtc-data.registree.io/data/attest"
-      //   )
-      //   .then(({ status, data }) => {
-      //     if (status === 200) {
-      //       this.$store.dispatch("saveToken", data);
-      //       this.attestation = {};
-      //     }
-      //   })
-      // TODO: get token from endpoint
-      const attestationResult = verifyToken(tokenFile.token);
-      commit("saveToken", tokenFile.token);
+      const res = await axios
+        .get(
+          process.env.VUE_APP_JWT_URL ??
+            "https://rtc-data.registree.io/data/attest"
+        )
+        .catch(err => {
+          throw err;
+        });
+      // Use tokenFile.token for testing if the server is not up
+      const attestationResult = verifyToken(res.data);
+      commit("saveToken", res.data);
       commit("saveAttestationResult", attestationResult);
     },
     saveToken({ commit }, token) {
@@ -84,19 +81,19 @@ export default createStore<State>({
         enclavePubKey as Base64
       );
       commit("saveSecretKey", ourData.ourSecretKey);
-      console.warn("TODO: dispatch messageData to uploadFile:", messageData);
-      dispatch("fakeUploadFile", {
-        metadata: { nonce: "asdf", uploader_pub_key: "slkasdlsdff" },
-        payload: "asd;fl;dslfsfl"
+      dispatch("uploadFile", {
+        metadata: {
+          nonce: messageData.nonce,
+          uploader_pub_key: messageData.ourPublicKey
+        },
+        payload: messageData.ciphertext
       });
     },
-    async fakeUploadFile({ dispatch }, request: UploadRequest) {
-      console.warn("fakeUploadFile request:", request);
-      const msg = Array(24 + 16).fill(12);
-      await dispatch("parseUploadMessage", msg);
-    },
     async uploadFile({ dispatch }, request: UploadRequest) {
-      const res = await axios.post<UploadResponse>("example.com", request);
+      const res = await axios.post<UploadResponse>(
+        "https://rtc-data.registree.io/data/uploads",
+        request
+      );
       if (res.status !== 200) {
         return "error";
       }
@@ -117,6 +114,7 @@ export default createStore<State>({
         state.ourSecretKey
       );
       if (!msg) {
+        // TODO: Error Handling
         return "error";
       }
       await dispatch("parseUploadMessage", msg);
