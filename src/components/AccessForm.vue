@@ -39,7 +39,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { encryptBlob } from "@/utils/cryptography";
+import { encryptJson } from "@/utils/cryptography";
 import elForm from "element-plus/lib/el-form";
 
 export default defineComponent({
@@ -81,11 +81,9 @@ export default defineComponent({
       (this.$refs[formName] as typeof elForm).validate(
         async (valid: boolean) => {
           if (valid) {
-            const encodedForm = new TextEncoder().encode(
-              JSON.stringify(this.form)
-            );
             const enclavePublicKey = this.$store.getters.enclavePublicKey;
-            await encryptBlob(encodedForm, enclavePublicKey);
+            const data = Object.assign({}, this.form);
+            await encryptJson(data, enclavePublicKey);
           } else {
             console.log("error submit!!");
             return false;
