@@ -82,6 +82,7 @@ export default defineComponent({
         async (valid: boolean) => {
           if (valid) {
             const enclavePublicKey = this.$store.getters.enclavePublicKey;
+            // Get the unproxied form data before encrypting, for clarity.
             const data = Object.assign({}, this.form);
             await encryptJson(data, enclavePublicKey);
           } else {
