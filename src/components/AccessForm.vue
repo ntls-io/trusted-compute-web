@@ -78,18 +78,20 @@ export default defineComponent({
   },
   methods: {
     onSubmit(formName: string) {
-      (this.$refs[formName] as typeof elForm).validate((valid: boolean) => {
-        if (valid) {
-          const encodedForm = new TextEncoder().encode(
-            JSON.stringify(this.form)
-          );
-          const enclavePublicKey = this.$store.getters.enclavePublicKey;
-          encryptBlob(encodedForm, enclavePublicKey);
-        } else {
-          console.log("error submit!!");
-          return false;
+      (this.$refs[formName] as typeof elForm).validate(
+        async (valid: boolean) => {
+          if (valid) {
+            const encodedForm = new TextEncoder().encode(
+              JSON.stringify(this.form)
+            );
+            const enclavePublicKey = this.$store.getters.enclavePublicKey;
+            await encryptBlob(encodedForm, enclavePublicKey);
+          } else {
+            console.log("error submit!!");
+            return false;
+          }
         }
-      });
+      );
     }
   }
 });
