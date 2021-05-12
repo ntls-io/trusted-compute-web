@@ -46,9 +46,11 @@ export async function encryptBytes(
       ciphertext: util.encodeBase64(ciphertext)
     }
   };
-  ///** Not using blob return type for now since the metadata is passed alongside
-  ///** the upload data as base46. We should change the strategy here
-  ///** in the future
+  // FIXME: For now, this is using Base64 here for all the key values,
+  //        but this gets very inefficient for larger file uploads.
+  //        We should change the strategy here in the future,
+  //        such as using headers for the file upload metadata.
+  //
   //   cipherBlob: new Blob([ciphertext.buffer], {
   //     type: "application/octet-stream"
   //   })
