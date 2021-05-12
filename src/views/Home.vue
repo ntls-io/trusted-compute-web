@@ -17,6 +17,7 @@ import { defineComponent } from "vue";
 import FileUpload from "@/components/FileUpload.vue";
 import JwtDisplay from "@/components/JwtDisplay.vue";
 import Attestation from "@/components/Attestation.vue";
+import { ElNotification } from "element-plus";
 import { mapActions } from "vuex";
 
 export default defineComponent({
@@ -32,7 +33,16 @@ export default defineComponent({
   methods: {
     ...mapActions(["requestAttestation"]),
     async getAttestation() {
-      await this.requestAttestation();
+      try {
+        await this.requestAttestation();
+      } catch (e) {
+        // TODO: Better error handling when the attestation call fails
+        ElNotification({
+          type: "error",
+          message: "Server Unavailable",
+          duration: 2500
+        });
+      }
     }
   }
 });
