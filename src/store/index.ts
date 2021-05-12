@@ -1,5 +1,4 @@
 import { createLogger, createStore } from "vuex";
-import tokenFile from "./token.json";
 import { encryptBlob, Base64, decryptMessage } from "@/utils/cryptography";
 import { verifyToken } from "@/utils/jwt";
 import { AttestationToken } from "@/utils/attestation-token";
