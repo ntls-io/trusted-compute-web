@@ -54,17 +54,9 @@ export default createStore<State>({
   },
   actions: {
     async requestAttestation({ commit }) {
-      const res = await axios
-        .get(
-          process.env.VUE_APP_JWT_URL ??
-            "https://rtc-data.registree.io/data/attest"
-        )
-        .catch(err => {
-          throw err;
-        });
-      // Use tokenFile.token for testing if the server is not up
-      const attestationResult = verifyToken(res.data);
-      commit("saveToken", res.data);
+      const token = await fetchAttestationToken();
+      const attestationResult = verifyToken(token);
+      commit("saveToken", token);
       commit("saveAttestationResult", attestationResult);
     },
     saveToken({ commit }, token) {
@@ -127,3 +119,14 @@ export default createStore<State>({
   },
   modules: {}
 });
+
+/**
+ * Helper: Fetch the attestation JWT.
+ */
+async function fetchAttestationToken(): Promise<string> {
+  const url =
+    process.env.VUE_APP_JWT_URL ?? "https://rtc-data.registree.io/data/attest";
+  const res = await axios.get<string>(url);
+  // Use tokenFile.token for testing if the server is not up
+  return res.data;
+}
