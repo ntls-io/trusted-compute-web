@@ -18,6 +18,7 @@ import JwtDisplay from "@/components/JwtDisplay.vue";
 import Attestation from "@/components/Attestation.vue";
 import AccessForm from "@/components/AccessForm.vue";
 import { mapActions } from "vuex";
+import { notifyErrors } from "@/utils/error-notification";
 
 export default defineComponent({
   name: "DataAccess",
@@ -32,7 +33,11 @@ export default defineComponent({
   methods: {
     ...mapActions(["requestAttestation"]),
     async getAttestation() {
-      await this.requestAttestation();
+      // TODO: Better error handling when the attestation call fails
+      await notifyErrors(
+        "Attestation failed",
+        async () => await this.requestAttestation()
+      );
     }
   }
 });

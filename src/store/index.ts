@@ -1,5 +1,4 @@
 import { createLogger, createStore } from "vuex";
-import tokenFile from "./token.json";
 import { encryptBlob, Base64, decryptMessage } from "@/utils/cryptography";
 import { verifyToken } from "@/utils/jwt";
 import { AttestationToken } from "@/utils/attestation-token";
@@ -55,17 +54,9 @@ export default createStore<State>({
   },
   actions: {
     async requestAttestation({ commit }) {
-      const res = await axios
-        .get(
-          process.env.VUE_APP_JWT_URL ??
-            "https://rtc-data.registree.io/data/attest"
-        )
-        .catch(err => {
-          throw err;
-        });
-      // Use tokenFile.token for testing if the server is not up
-      const attestationResult = verifyToken(res.data);
-      commit("saveToken", res.data);
+      const token = await fetchAttestationToken();
+      const attestationResult = verifyToken(token);
+      commit("saveToken", token);
       commit("saveAttestationResult", attestationResult);
     },
     saveToken({ commit }, token) {
@@ -128,3 +119,38 @@ export default createStore<State>({
   },
   modules: {}
 });
+
+/**
+ * Helper: Fetch the attestation JWT.
+ *
+ * In non-production mode (`NODE_ENV !== "production"`), if the request fails,
+ * log the error and fall back to the local token for testing.
+ */
+async function fetchAttestationToken(): Promise<string> {
+  const url =
+    process.env.VUE_APP_JWT_URL ?? "https://rtc-data.registree.io/data/attest";
+
+  if (process.env.NODE_ENV === "production") {
+    const res = await axios.get<string>(url);
+    return res.data;
+  } else {
+    try {
+      // Use a short timeout for interactive development
+      const timeout = 4_000;
+      const res = await axios.get<string>(url, { timeout });
+      return res.data;
+    } catch (e) {
+      console.error(
+        [
+          `fetchAttestationToken: failed to fetch ${url}`,
+          `Falling back to local token for testing, with NODE_ENV=${process.env.NODE_ENV}`,
+          "Cause:"
+        ].join("\n"),
+        e
+      );
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const tokenFile = require("./token.json");
+      return tokenFile.token;
+    }
+  }
+}
