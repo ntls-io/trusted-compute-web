@@ -39,7 +39,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { encryptJson } from "@/utils/cryptography";
+import { encryptJson, MessageData } from "@/utils/cryptography";
 import elForm from "element-plus/lib/el-form";
 
 export default defineComponent({
@@ -84,13 +84,28 @@ export default defineComponent({
             const enclavePublicKey = this.$store.getters.enclavePublicKey;
             // Get the unproxied form data before encrypting, for clarity.
             const data = Object.assign({}, this.form);
-            await encryptJson(data, enclavePublicKey);
+            const { messageData } = await encryptJson(data, enclavePublicKey);
+            if (messageData) {
+              console.log(messageData);
+              this.postEncryptedBox(messageData);
+            }
           } else {
             console.log("error submit!!");
             return false;
           }
         }
       );
+    },
+    async postEncryptedBox(data: MessageData) {
+      await this.axios
+        .post(
+          process.env.VUE_APP_JWT_URL ??
+            "https://rtc-data.registree.io/data/attest",
+          data
+        )
+        .then(result => {
+          console.log(result);
+        });
     }
   }
 });
