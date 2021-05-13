@@ -18,25 +18,23 @@ export interface EncryptedMessage {
 }
 
 /**
- * Encrypt a Blob (File) with a new secret key.
+ * Encrypt some data with a new secret key.
  *
- * This is currently one-shot: the Blob should fit in memory.
+ * This is currently one-shot: the data should fit in memory.
  * For streaming encryption, we should look at nacl-stream-js or nacl-blob.
  *
  * @see https://github.com/dchest/nacl-stream-js
  * @see https://github.com/bcomnes/nacl-blob
  */
-export async function encryptBlob(
-  plainBlob: Blob,
+export async function encryptBytes(
+  plaintext: Uint8Array,
   theirPublicKey: Base64
 ): Promise<EncryptedMessage> {
-  console.log("encryptBlob:", { plainBlob, theirPublicKey });
-  const plaintext = new Uint8Array(await plainBlob.arrayBuffer());
   const { ciphertext, nonce, ourPublicKey, ourSecretKey } = encryptBox(
     plaintext,
     util.decodeBase64(theirPublicKey)
   );
-  console.log("encryptBlob ciphertext.length:", ciphertext.length);
+  console.log("encryptBytes ciphertext.length:", ciphertext.length);
 
   return {
     ourData: {
@@ -48,13 +46,43 @@ export async function encryptBlob(
       ciphertext: util.encodeBase64(ciphertext)
     }
   };
-
-  ///** Not using blob return type for now since the metadata is passed alongside
-  ///** the upload data as base46. We should change the strategy here
-  ///** in the future
+  // FIXME: For now, this is using Base64 here for all the key values,
+  //        but this gets very inefficient for larger file uploads.
+  //        We should change the strategy here in the future,
+  //        such as using headers for the file upload metadata.
+  //
   //   cipherBlob: new Blob([ciphertext.buffer], {
   //     type: "application/octet-stream"
-  //   }),
+  //   })
+}
+
+/**
+ * Helper: Encrypt a Blob (File).
+ *
+ * @see encryptBytes
+ */
+export async function encryptBlob(
+  plainBlob: Blob,
+  theirPublicKey: Base64
+): Promise<EncryptedMessage> {
+  console.log("encryptBlob:", { plainBlob, theirPublicKey });
+  const plaintext = new Uint8Array(await plainBlob.arrayBuffer());
+  return encryptBytes(plaintext, theirPublicKey);
+}
+
+/**
+ * Helper: Encrypt a JSON value.
+ *
+ * @see encryptBytes
+ */
+export async function encryptJson(
+  value: unknown,
+  theirPublicKey: Base64
+): Promise<EncryptedMessage> {
+  const valueString = JSON.stringify(value);
+  console.log("encryptJson:", { value, valueString, theirPublicKey });
+  const plaintext = new TextEncoder().encode(valueString);
+  return encryptBytes(plaintext, theirPublicKey);
 }
 
 export function decryptMessage(
