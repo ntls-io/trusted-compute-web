@@ -122,11 +122,35 @@ export default createStore<State>({
 
 /**
  * Helper: Fetch the attestation JWT.
+ *
+ * In non-production mode (`NODE_ENV !== "production"`), if the request fails,
+ * log the error and fall back to the local token for testing.
  */
 async function fetchAttestationToken(): Promise<string> {
   const url =
     process.env.VUE_APP_JWT_URL ?? "https://rtc-data.registree.io/data/attest";
-  const res = await axios.get<string>(url);
-  // Use tokenFile.token for testing if the server is not up
-  return res.data;
+
+  if (process.env.NODE_ENV === "production") {
+    const res = await axios.get<string>(url);
+    return res.data;
+  } else {
+    try {
+      // Use a short timeout for interactive development
+      const timeout = 4_000;
+      const res = await axios.get<string>(url, { timeout });
+      return res.data;
+    } catch (e) {
+      console.error(
+        [
+          `fetchAttestationToken: failed to fetch ${url}`,
+          `Falling back to local token for testing, with NODE_ENV=${process.env.NODE_ENV}`,
+          "Cause:"
+        ].join("\n"),
+        e
+      );
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const tokenFile = require("./token.json");
+      return tokenFile.token;
+    }
+  }
 }
