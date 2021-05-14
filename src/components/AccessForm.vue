@@ -30,17 +30,22 @@
       ></el-input-number>
     </el-form-item>
     <el-form-item style="margin-top: 15px">
-      <el-button type="primary" @click="onSubmit('accessForm')"
-        >Create</el-button
+      <el-button
+        type="primary"
+        :loading="loading"
+        @click="onSubmit('accessForm')"
       >
+        Create
+      </el-button>
     </el-form-item>
   </el-form>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { encryptJson, MessageData } from "@/utils/cryptography";
+import { decryptMessage, encryptJson, MessageData } from "@/utils/cryptography";
 import elForm from "element-plus/lib/el-form";
+import { notifyErrors } from "@/utils/error-notification";
 
 export default defineComponent({
   data() {
@@ -73,21 +78,32 @@ export default defineComponent({
             trigger: "change"
           }
         ]
-      }
+      },
+      loading: false
     };
+  },
+  computed: {
+    serverPublicKey() {
+      return this.$store.getters.enclavePublicKey;
+    },
+    ourSecretKey() {
+      return this.$store.getters.ourSecretKey;
+    }
   },
   methods: {
     onSubmit(formName: string) {
       (this.$refs[formName] as typeof elForm).validate(
         async (valid: boolean) => {
           if (valid) {
-            const enclavePublicKey = this.$store.getters.enclavePublicKey;
+            this.loading = true;
             // Get the unproxied form data before encrypting, for clarity.
             const data = Object.assign({}, this.form);
-            const { messageData } = await encryptJson(data, enclavePublicKey);
+            const { messageData } = await encryptJson(
+              data,
+              this.serverPublicKey
+            );
             if (messageData) {
-              console.log(messageData);
-              this.postEncryptedBox(messageData);
+              await this.postEncryptedBox(messageData);
             }
           } else {
             console.log("error submit!!");
@@ -96,15 +112,35 @@ export default defineComponent({
         }
       );
     },
-    async postEncryptedBox(data: MessageData) {
+    async postEncryptedBox(messageData: MessageData) {
+      const payload = {
+        metadata: {
+          nonce: messageData.nonce,
+          uploader_pub_key: messageData.ourPublicKey
+        },
+        payload: messageData.ciphertext
+      };
       await this.axios
-        .post(
-          process.env.VUE_APP_JWT_URL ??
-            "https://rtc-data.registree.io/data/attest",
-          data
-        )
-        .then(result => {
+        .post("https://rtc-data.registree.io/auth/tokens", payload)
+        .then(async result => {
           console.log(result);
+          if (result.status === 200) {
+            const { execution_token, nonce } = result.data;
+            await notifyErrors("decryptMessage failed", async () =>
+              decryptMessage(
+                execution_token,
+                nonce,
+                this.serverPublicKey,
+                this.ourSecretKey
+              )
+            );
+          }
+        })
+        .catch(error => {
+          console.log(`post resul ${error}`);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     }
   }
