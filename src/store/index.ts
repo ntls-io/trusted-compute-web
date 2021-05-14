@@ -1,5 +1,10 @@
 import { createLogger, createStore } from "vuex";
-import { encryptBlob, Base64, decryptMessage } from "@/utils/cryptography";
+import {
+  encryptBlob,
+  Base64,
+  decryptMessage,
+  encryptJson
+} from "@/utils/cryptography";
 import { verifyToken } from "@/utils/jwt";
 import { AttestationToken } from "@/utils/attestation-token";
 import base64url from "base64url";
@@ -33,6 +38,10 @@ export default createStore<State>({
         return null;
       }
       return base64url.toBase64(token.enclaveHeldData);
+    },
+    ourSecretKey(state) {
+      const key = state.ourSecretKey;
+      return key ?? null;
     }
   },
   mutations: {
@@ -115,6 +124,14 @@ export default createStore<State>({
       const accessKey = btoa(message.slice(0, 24).toString());
       const uuid = message.slice(24);
       commit("saveUploadResult", { accessKey, uuid });
+    },
+    async sealBox({ commit, getters }, data) {
+      const { messageData, ourData } = await encryptJson(
+        data,
+        await getters.enclavePublicKey
+      );
+      commit("saveSecretKey", ourData.ourSecretKey);
+      return messageData;
     }
   },
   modules: {}
