@@ -43,9 +43,10 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { decryptMessage, encryptJson, MessageData } from "@/utils/cryptography";
+import { decryptMessage, MessageData } from "@/utils/cryptography";
 import elForm from "element-plus/lib/el-form";
 import { notifyErrors } from "@/utils/error-notification";
+import { mapActions, mapGetters, mapState } from "vuex";
 
 export default defineComponent({
   data() {
@@ -83,14 +84,11 @@ export default defineComponent({
     };
   },
   computed: {
-    serverPublicKey() {
-      return this.$store.getters.enclavePublicKey;
-    },
-    ourSecretKey() {
-      return this.$store.getters.ourSecretKey;
-    }
+    ...mapState(["ourSecretKey"]),
+    ...mapGetters(["enclavePublicKey"])
   },
   methods: {
+    ...mapActions(["sealBox"]),
     onSubmit(formName: string) {
       (this.$refs[formName] as typeof elForm).validate(
         async (valid: boolean) => {
@@ -98,13 +96,11 @@ export default defineComponent({
             this.loading = true;
             // Get the unproxied form data before encrypting, for clarity.
             const data = Object.assign({}, this.form);
-            const { messageData } = await encryptJson(
-              data,
-              this.serverPublicKey
-            );
-            if (messageData) {
-              await this.postEncryptedBox(messageData);
-            }
+            await this.sealBox(data).then(async messageData => {
+              if (messageData) {
+                await this.postEncryptedBox(messageData);
+              }
+            });
           } else {
             console.log("error submit!!");
             return false;
@@ -126,14 +122,15 @@ export default defineComponent({
           console.log(result);
           if (result.status === 200) {
             const { execution_token, nonce } = result.data;
-            await notifyErrors("decryptMessage failed", async () =>
-              decryptMessage(
+            await notifyErrors("Attestation failed", async () => {
+              const decryptedResult = decryptMessage(
                 execution_token,
                 nonce,
-                this.serverPublicKey,
+                this.enclavePublicKey,
                 this.ourSecretKey
-              )
-            );
+              );
+              console.log(decryptedResult);
+            });
           }
         })
         .catch(error => {
