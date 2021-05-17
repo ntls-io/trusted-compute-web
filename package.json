@@ -13,7 +13,6 @@
     "@websanova/vue-upload": "^2.1.0",
     "axios": "^0.21.1",
     "base64url": "^3.0.1",
-    "bootstrap": "^5.0.0-beta3",
     "core-js": "^3.6.5",
     "element-plus": "^1.0.2-beta.28",
     "jsrsasign": "^10.2.0",
