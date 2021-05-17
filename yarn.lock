@@ -8826,10 +8826,10 @@ vue-cli-plugin-element-plus@~0.0.13:
   resolved "https://registry.yarnpkg.com/vue-cli-plugin-element-plus/-/vue-cli-plugin-element-plus-0.0.13.tgz#da829776373aad4269fc23b57bb3aa043bc67744"
   integrity sha512-ctG5mynJIyGLFBhS2JpzXmBWT3JRXwzMm5AoANUmBlbZHTruct1xQF2OKM/mfJv6tSfqCcEfgH8rGCAY5ca83Q==
 
-vue-clipboard3@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/vue-clipboard3/-/vue-clipboard3-1.0.0.tgz#6dc797c6ddc7c6f8f2d5276db1a2adfec98ae074"
-  integrity sha512-45Z47MJdAutrvtQvQdkKgLYazqeXNEgNaUUzeerqcNYtxSUpvDjHJWkTTgQTF5SdT9d+FdLX88sYB8qwtxHIxQ==
+vue-clipboard3@1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/vue-clipboard3/-/vue-clipboard3-1.0.1.tgz#39e31fbf41f11d3701b3372e38a7fb83b484796a"
+  integrity sha512-iJ2vrizowfA73W3pcxMAKhYSvfekJrQ3FhbveVe9esS1Vfu+xW3Fgc0UKE8N4Q6DyRtcAoNlef8txmD8tK8dIg==
   dependencies:
     clipboard "^2.0.6"
 
