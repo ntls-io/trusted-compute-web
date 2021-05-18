@@ -1,5 +1,5 @@
 <template>
-  <el-card v-loading="busy.fetchingToken || Boolean(!jwtToken)">
+  <el-card v-loading="isBusy.fetchingToken || Boolean(!jwtToken)">
     <template #header>
       <div class="card-header">
         <span>JWT Token</span>
@@ -23,24 +23,22 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { computed, defineComponent, reactive } from "vue";
 import useClipboard from "vue-clipboard3";
 import { ElNotification } from "element-plus";
-import { mapActions, mapState } from "vuex";
+import { useStore } from "vuex";
 
 export default defineComponent({
-  data() {
-    return {
-      busy: { fetchingToken: false }
-    };
-  },
   setup() {
     const { toClipboard } = useClipboard();
+    const store = useStore();
+    const isBusy = reactive({
+      fetchingToken: false
+    });
 
     const copy = async (token: string) => {
       try {
         await toClipboard(token);
-        console.log("Copied to clipboard");
         ElNotification({
           type: "success",
           message: "Copied to clipboard",
@@ -54,20 +52,18 @@ export default defineComponent({
       }
     };
 
-    return { copy };
-  },
-  computed: {
-    ...mapState({
-      jwtToken: "jwtToken"
-    })
-  },
-  methods: {
-    ...mapActions(["requestAttestation"]),
-    async getAttestation() {
-      this.busy.fetchingToken = true;
-      await this.requestAttestation();
-      this.busy.fetchingToken = false;
-    }
+    const getAttestation = async () => {
+      isBusy.fetchingToken = true;
+      await store.dispatch("requestAttestation");
+      isBusy.fetchingToken = false;
+    };
+
+    return {
+      isBusy,
+      copy,
+      getAttestation,
+      jwtToken: computed(() => store.state["jwtToken"])
+    };
   }
 });
 </script>
