@@ -54,7 +54,7 @@
             v-if="state._file.state === 'queue'"
             @click="
               state._file.clear();
-              encryptionResult = undefined;
+              state.encryptionResult = undefined;
             "
           >
             Remove File
@@ -72,13 +72,13 @@
       </el-col>
     </el-row>
     <el-row>
-      <el-col v-if="encryptionResult && state._file.state">
+      <el-col v-if="state.encryptionResult && state._file.state">
         <el-descriptions direction="vertical" :column="1" border size="small">
           <el-descriptions-item label="Secret key">
-            {{ encryptionResult.keyBase64 }}
+            {{ state.encryptionResult.keyBase64 }}
           </el-descriptions-item>
           <el-descriptions-item label="Nonce">
-            {{ encryptionResult.nonceBase64 }}
+            {{ state.encryptionResult.nonceBase64 }}
           </el-descriptions-item>
         </el-descriptions>
 
@@ -100,47 +100,42 @@ import {
   defineComponent,
   onBeforeUnmount,
   onMounted,
-  reactive
+  reactive,
+  watch
 } from "vue";
 import { useUpload } from "@websanova/vue-upload";
-import { mapState, useStore } from "vuex";
+import { useStore } from "vuex";
+
+interface EncryptionResult {
+  cipherBlob: Blob;
+  nonceBase64: string;
+  keyBase64: string;
+}
 
 export default defineComponent({
-  data: (): {
-    encryptionResult?: {
-      cipherBlob: Blob;
-      nonceBase64: string;
-      keyBase64: string;
-    };
-  } => ({
-    encryptionResult: undefined
-  }),
-  computed: {
-    ...mapState(["uploadResult"]),
-    /** Allocate an object URL for encryptedFile. */
-    encryptedFileURL(): string | undefined {
-      return this.encryptionResult?.cipherBlob
-        ? URL.createObjectURL(this.encryptionResult.cipherBlob)
-        : undefined;
-    }
-  },
-  watch: {
-    /** Release old object URLs on change.  */
-    encryptedFileURL(newURL: string, oldURL: string): void {
-      if (oldURL) URL.revokeObjectURL(oldURL);
-    }
-  },
   setup() {
-    const store = useStore();
     const upload = useUpload();
     const state = reactive({
+      encryptionResult: (undefined as unknown) as EncryptionResult,
       _file: computed(() => {
         return upload.file("the-file");
       })
     });
+    const encryptedFileURL = computed(() => {
+      return state.encryptionResult?.cipherBlob
+        ? URL.createObjectURL(state.encryptionResult.cipherBlob)
+        : undefined;
+    });
+
+    watch(encryptedFileURL, (_newURL, oldURL): void => {
+      if (oldURL) URL.revokeObjectURL(oldURL);
+    });
+
     function select() {
       upload.select("the-file");
     }
+
+    const store = useStore();
     function uploadFile() {
       store.dispatch("encryptAndUploadFile", state._file.$file);
     }
@@ -157,7 +152,9 @@ export default defineComponent({
     return {
       state,
       select,
-      uploadFile
+      uploadFile,
+      encryptedFileURL,
+      uploadResult: computed(() => store.state["uploadResult"])
     };
   }
 });
