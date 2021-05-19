@@ -51,7 +51,7 @@
           <el-button
             size="small"
             type="danger"
-            v-show="state._file.state === 'queue'"
+            v-if="state._file.state === 'queue'"
             @click="
               state._file.clear();
               encryptionResult = undefined;
@@ -63,8 +63,8 @@
           <el-button
             size="small"
             type="success"
-            v-show="state._file.state === 'queue'"
-            @click="uploadFile(state._file)"
+            v-if="state._file.state === 'queue'"
+            @click="uploadFile()"
           >
             Encrypt and Upload File
           </el-button>
@@ -102,8 +102,8 @@ import {
   onMounted,
   reactive
 } from "vue";
-import { UploadFile, useUpload } from "@websanova/vue-upload";
-import { mapActions, mapState } from "vuex";
+import { useUpload } from "@websanova/vue-upload";
+import { mapState, useStore } from "vuex";
 
 export default defineComponent({
   data: (): {
@@ -131,6 +131,7 @@ export default defineComponent({
     }
   },
   setup() {
+    const store = useStore();
     const upload = useUpload();
     const state = reactive({
       _file: computed(() => {
@@ -140,6 +141,10 @@ export default defineComponent({
     function select() {
       upload.select("the-file");
     }
+    function uploadFile() {
+      store.dispatch("encryptAndUploadFile", state._file.$file);
+    }
+
     onMounted(() => {
       upload.on("the-file", {
         startOnSelect: false,
@@ -151,15 +156,9 @@ export default defineComponent({
     });
     return {
       state,
-      select
+      select,
+      uploadFile
     };
-  },
-  methods: {
-    ...mapActions(["encryptAndUploadFile"]),
-    /** Encrypt the given file to encryptionResult. */
-    async uploadFile(uploadFile: UploadFile) {
-      await this.encryptAndUploadFile(uploadFile.$file);
-    }
   }
 });
 </script>
