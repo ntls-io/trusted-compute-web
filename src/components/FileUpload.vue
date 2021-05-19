@@ -7,9 +7,9 @@
           type="primary"
           v-if="
             !Boolean(
-              state._file.state ||
-                state._file.state === 'success' ||
-                state._file.state === 'error'
+              theFile.state ||
+                theFile.state === 'success' ||
+                theFile.state === 'error'
             )
           "
           @click="select"
@@ -19,7 +19,7 @@
       </el-col>
     </el-row>
     <el-row>
-      <el-col v-if="state._file.state">
+      <el-col v-if="theFile.state">
         <el-descriptions
           title="Selected file"
           direction="horizontal"
@@ -28,16 +28,16 @@
           size="small"
         >
           <el-descriptions-item label="Name">
-            {{ state._file.name }}
+            {{ theFile.name }}
           </el-descriptions-item>
           <el-descriptions-item label="Size">
-            {{ (state._file.size / 1024).toFixed(2) + "kb" }}
+            {{ (theFile.size / 1024).toFixed(2) + "kb" }}
           </el-descriptions-item>
           <el-descriptions-item label="Type">
-            {{ state._file.type }}
+            {{ theFile.type }}
           </el-descriptions-item>
           <el-descriptions-item label="Extension">
-            {{ state._file.extension }}
+            {{ theFile.extension }}
           </el-descriptions-item>
           <el-descriptions-item label="Upload access key">
             {{ uploadResult?.accessKey }}
@@ -51,10 +51,10 @@
           <el-button
             size="small"
             type="danger"
-            v-if="state._file.state === 'queue'"
+            v-if="theFile.state === 'queue'"
             @click="
-              state._file.clear();
-              state.encryptionResult = undefined;
+              theFile.clear();
+              encryptionResult = undefined;
             "
           >
             Remove File
@@ -63,7 +63,7 @@
           <el-button
             size="small"
             type="success"
-            v-if="state._file.state === 'queue'"
+            v-if="theFile.state === 'queue'"
             @click="uploadFile()"
           >
             Encrypt and Upload File
@@ -72,13 +72,13 @@
       </el-col>
     </el-row>
     <el-row>
-      <el-col v-if="state.encryptionResult && state._file.state">
+      <el-col v-if="encryptionResult && theFile.state">
         <el-descriptions direction="vertical" :column="1" border size="small">
           <el-descriptions-item label="Secret key">
-            {{ state.encryptionResult.keyBase64 }}
+            {{ encryptionResult.keyBase64 }}
           </el-descriptions-item>
           <el-descriptions-item label="Nonce">
-            {{ state.encryptionResult.nonceBase64 }}
+            {{ encryptionResult.nonceBase64 }}
           </el-descriptions-item>
         </el-descriptions>
 
@@ -101,6 +101,7 @@ import {
   onBeforeUnmount,
   onMounted,
   reactive,
+  toRefs,
   watch
 } from "vue";
 import { useUpload } from "@websanova/vue-upload";
@@ -117,7 +118,7 @@ export default defineComponent({
     const upload = useUpload();
     const state = reactive({
       encryptionResult: (undefined as unknown) as EncryptionResult,
-      _file: computed(() => {
+      theFile: computed(() => {
         return upload.file("the-file");
       })
     });
@@ -137,7 +138,7 @@ export default defineComponent({
 
     const store = useStore();
     function uploadFile() {
-      store.dispatch("encryptAndUploadFile", state._file.$file);
+      store.dispatch("encryptAndUploadFile", state.theFile.$file);
     }
 
     onMounted(() => {
@@ -150,7 +151,7 @@ export default defineComponent({
       upload.off("the-file");
     });
     return {
-      state,
+      ...toRefs(state),
       select,
       uploadFile,
       encryptedFileURL,
