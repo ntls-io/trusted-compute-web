@@ -44,7 +44,8 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import elForm from "element-plus/lib/el-form";
-import { mapActions, mapGetters, mapState } from "vuex";
+import { ElMessageBox } from "element-plus";
+import { mapActions, mapGetters, mapMutations, mapState } from "vuex";
 
 export default defineComponent({
   data() {
@@ -82,11 +83,12 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(["ourSecretKey"]),
+    ...mapState(["ourSecretKey", "decryptedMessage"]),
     ...mapGetters(["enclavePublicKey"])
   },
   methods: {
     ...mapActions(["sealBox"]),
+    ...mapMutations(["setDecryptedMsg"]),
     onSubmit(formName: string) {
       (this.$refs[formName] as typeof elForm).validate(
         async (valid: boolean) => {
@@ -102,6 +104,22 @@ export default defineComponent({
           }
         }
       );
+    },
+    async handleMsgDisplay(message: string) {
+      await ElMessageBox({
+        title: "Something",
+        message,
+        beforeClose: () => {
+          this.setDecryptedMsg(null);
+        }
+      });
+    }
+  },
+  watch: {
+    decryptedMessage(newState: string | null) {
+      if (newState) {
+        this.handleMsgDisplay(newState);
+      }
     }
   }
 });
