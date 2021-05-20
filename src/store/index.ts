@@ -19,6 +19,7 @@ export interface State {
   ourSecretKey: Base64 | null;
   attestationResult: AttestationToken | null;
   uploadResult: { accessKey: string; uuid: Uint8Array } | null;
+  decryptedMessage: string | null;
 }
 
 // TODO: add typescript typings for Vuex
@@ -29,7 +30,8 @@ export default createStore<State>({
     jwtToken: null,
     ourSecretKey: null,
     attestationResult: null,
-    uploadResult: null
+    uploadResult: null,
+    decryptedMessage: null
   },
   getters: {
     enclavePublicKey(state) {
@@ -59,6 +61,9 @@ export default createStore<State>({
       uploadResult: { accessKey: string; uuid: Uint8Array }
     ) {
       state.uploadResult = uploadResult;
+    },
+    saveDecryptedMsg(state, msg) {
+      state.decryptedMessage = msg;
     }
   },
   actions: {
@@ -106,7 +111,7 @@ export default createStore<State>({
 
       await dispatch("parseUploadMessage", msg);
     },
-    async postAccessForm({ dispatch }, request: UploadRequest) {
+    async postAccessForm({ dispatch, commit }, request: UploadRequest) {
       const res = await axios.post<UploadResponse>(
         "https://rtc-data.registree.io/auth/tokens",
         request
@@ -123,7 +128,7 @@ export default createStore<State>({
 
       //TODO: Open Dialog Box show message
 
-      await dispatch("saveDecryptedMsg", msg);
+      commit("saveDecryptedMsg", msg);
     },
     async decryptResponse({ state, getters }, response: UploadResponse) {
       const enclavePubKey = getters.enclavePublicKey;
