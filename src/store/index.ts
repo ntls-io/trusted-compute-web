@@ -62,7 +62,7 @@ export default createStore<State>({
     ) {
       state.uploadResult = uploadResult;
     },
-    saveDecryptedMsg(state, msg) {
+    setDecryptedMsg(state, msg) {
       state.decryptedMessage = msg;
     }
   },
@@ -128,7 +128,7 @@ export default createStore<State>({
 
       //TODO: Open Dialog Box show message
 
-      commit("saveDecryptedMsg", msg);
+      commit("setDecryptedMsg", msg);
     },
     async decryptResponse({ state, getters }, response: UploadResponse) {
       const enclavePubKey = getters.enclavePublicKey;
