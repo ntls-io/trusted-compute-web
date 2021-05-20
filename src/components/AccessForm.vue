@@ -43,9 +43,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { decryptMessage, MessageData } from "@/utils/cryptography";
 import elForm from "element-plus/lib/el-form";
-import { notifyErrors } from "@/utils/error-notification";
 import { mapActions, mapGetters, mapState } from "vuex";
 
 export default defineComponent({
@@ -96,49 +94,14 @@ export default defineComponent({
             this.loading = true;
             // Get the unproxied form data before encrypting, for clarity.
             const data = Object.assign({}, this.form);
-            await this.sealBox(data).then(async messageData => {
-              if (messageData) {
-                await this.postEncryptedBox(messageData);
-              }
-            });
+            await this.sealBox(data);
+            //TODO: trigger Dialog box here instead?
           } else {
             console.log("error submit!!");
             return false;
           }
         }
       );
-    },
-    async postEncryptedBox(messageData: MessageData) {
-      const payload = {
-        metadata: {
-          nonce: messageData.nonce,
-          uploader_pub_key: messageData.ourPublicKey
-        },
-        payload: messageData.ciphertext
-      };
-      await this.axios
-        .post("https://rtc-data.registree.io/auth/tokens", payload)
-        .then(async result => {
-          console.log(result);
-          if (result.status === 200) {
-            const { execution_token, nonce } = result.data;
-            await notifyErrors("Attestation failed", async () => {
-              const decryptedResult = decryptMessage(
-                execution_token,
-                nonce,
-                this.enclavePublicKey,
-                this.ourSecretKey
-              );
-              console.log(decryptedResult);
-            });
-          }
-        })
-        .catch(error => {
-          console.log(`post resul ${error}`);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
     }
   }
 });

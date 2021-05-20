@@ -97,27 +97,45 @@ export default createStore<State>({
       if (res.status !== 200) {
         return "error";
       }
-      await dispatch("decryptUploadResponse", res.data);
+      const msg = await dispatch("decryptResponse", res.data);
+
+      if (!msg) {
+        // TODO: Error Handling
+        return "error";
+      }
+
+      await dispatch("parseUploadMessage", msg);
     },
-    async decryptUploadResponse(
-      { state, dispatch, getters },
-      response: UploadResponse
-    ) {
+    async postAccessForm({ dispatch }, request: UploadRequest) {
+      const res = await axios.post<UploadResponse>(
+        "https://rtc-data.registree.io/auth/tokens",
+        request
+      );
+      if (res.status !== 200) {
+        return "error";
+      }
+      const msg = await dispatch("decryptResponse", res.data);
+
+      if (!msg) {
+        // TODO: Error Handling
+        return "error";
+      }
+
+      //TODO: Open Dialog Box show message
+
+      await dispatch("saveDecryptedMsg", msg);
+    },
+    async decryptResponse({ state, getters }, response: UploadResponse) {
       const enclavePubKey = getters.enclavePublicKey;
       if (!enclavePubKey || !state.ourSecretKey) {
         return "error";
       }
-      const msg = decryptMessage(
+      return decryptMessage(
         response.ciphertext,
         response.nonce,
         enclavePubKey,
         state.ourSecretKey
       );
-      if (!msg) {
-        // TODO: Error Handling
-        return "error";
-      }
-      await dispatch("parseUploadMessage", msg);
     },
     async parseUploadMessage({ commit }, message: Uint8Array) {
       console.log("parseUploadMessage:", message);
@@ -125,13 +143,24 @@ export default createStore<State>({
       const uuid = message.slice(24);
       commit("saveUploadResult", { accessKey, uuid });
     },
-    async sealBox({ commit, getters }, data) {
-      const { messageData, ourData } = await encryptJson(
+    async sealBox({ commit, dispatch, getters }, data) {
+      const enclavePubKey = getters.enclavePublicKey;
+      if (!enclavePubKey) {
+        return null;
+      }
+      const { ourData, messageData } = await encryptJson(
         data,
-        await getters.enclavePublicKey
+        enclavePubKey as Base64
       );
+
       commit("saveSecretKey", ourData.ourSecretKey);
-      return messageData;
+      dispatch("postAccessForm", {
+        metadata: {
+          nonce: messageData.nonce,
+          uploader_pub_key: messageData.ourPublicKey
+        },
+        payload: messageData.ciphertext
+      });
     }
   },
   modules: {}
