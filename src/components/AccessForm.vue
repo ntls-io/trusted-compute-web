@@ -87,7 +87,7 @@ export default defineComponent({
     ...mapGetters(["enclavePublicKey"])
   },
   methods: {
-    ...mapActions(["sealBox"]),
+    ...mapActions(["requestExecutionToken"]),
     ...mapMutations(["setDecryptedMsg"]),
     onSubmit(formName: string) {
       (this.$refs[formName] as typeof elForm).validate(
@@ -96,7 +96,7 @@ export default defineComponent({
             this.loading = true;
             // Get the unproxied form data before encrypting, for clarity.
             const data = Object.assign({}, this.form);
-            await this.sealBox(data);
+            await this.requestExecutionToken(data);
             this.loading = false;
             //TODO: trigger Dialog box here instead?
           } else {

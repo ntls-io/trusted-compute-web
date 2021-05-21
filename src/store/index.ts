@@ -148,7 +148,7 @@ export default createStore<State>({
       const uuid = message.slice(24);
       commit("saveUploadResult", { accessKey, uuid });
     },
-    async sealBox({ commit, dispatch, getters }, data) {
+    async requestExecutionToken({ commit, dispatch, getters }, data) {
       const enclavePubKey = getters.enclavePublicKey;
       if (!enclavePubKey) {
         return null;
