@@ -97,6 +97,7 @@ export default defineComponent({
             // Get the unproxied form data before encrypting, for clarity.
             const data = Object.assign({}, this.form);
             await this.sealBox(data);
+            this.loading = false;
             //TODO: trigger Dialog box here instead?
           } else {
             console.log("error submit!!");
