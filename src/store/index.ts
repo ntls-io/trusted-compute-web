@@ -94,7 +94,7 @@ export default createStore<State>({
         payload: messageData.ciphertext
       });
     },
-    async uploadFile({ dispatch }, request: UploadRequest) {
+    async uploadFile({ dispatch, getters }, request: UploadRequest) {
       const res = await axios.post<UploadResponse>(
         "https://rtc-data.registree.io/data/uploads",
         request
@@ -102,7 +102,17 @@ export default createStore<State>({
       if (res.status !== 200) {
         return "error";
       }
-      const msg = await dispatch("decryptResponse", res.data);
+
+      const { nonce, ciphertext } = res.data;
+      const enclavePubKey = getters.enclavePublicKey;
+      const ourSecretKey = getters.ourSecretKey;
+
+      const msg = decryptMessage(
+        ciphertext,
+        nonce,
+        enclavePubKey,
+        ourSecretKey
+      );
 
       if (!msg) {
         // TODO: Error Handling
@@ -111,7 +121,7 @@ export default createStore<State>({
 
       await dispatch("parseUploadMessage", msg);
     },
-    async postAccessForm({ dispatch, commit }, request: UploadRequest) {
+    async postAccessForm({ commit, getters }, request: UploadRequest) {
       const res = await axios.post<UploadResponse>(
         "https://rtc-data.registree.io/auth/tokens",
         request
@@ -119,7 +129,17 @@ export default createStore<State>({
       if (res.status !== 200) {
         return "error";
       }
-      const msg = await dispatch("decryptResponse", res.data);
+
+      const { nonce, ciphertext } = res.data;
+      const enclavePubKey = getters.enclavePublicKey;
+      const ourSecretKey = getters.ourSecretKey;
+
+      const msg = decryptMessage(
+        ciphertext,
+        nonce,
+        enclavePubKey,
+        ourSecretKey
+      );
 
       if (!msg) {
         // TODO: Error Handling
