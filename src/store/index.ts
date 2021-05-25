@@ -95,20 +95,21 @@ export default createStore<State>({
         "https://rtc-data.registree.io/data/uploads",
         request
       );
-      if (res.status !== 200) {
+      const enclavePubKey = getters.enclavePublicKey;
+      const ourSecretKey = state.ourSecretKey;
+
+      if (res.status !== 200 || !enclavePubKey || !ourSecretKey) {
         // TODO: Error Handling
         return "error";
       }
 
       const { nonce, ciphertext } = res.data;
-      const enclavePubKey = getters.enclavePublicKey;
-      const ourSecretKey = state.ourSecretKey;
 
       const msg = decryptMessage(
         ciphertext,
         nonce,
         enclavePubKey,
-        ourSecretKey as Base64
+        ourSecretKey
       );
 
       if (!msg) {
@@ -123,20 +124,21 @@ export default createStore<State>({
         "https://rtc-data.registree.io/auth/tokens",
         request
       );
-      if (res.status !== 200) {
+      const enclavePubKey = getters.enclavePublicKey;
+      const ourSecretKey = state.ourSecretKey;
+
+      if (res.status !== 200 || !enclavePubKey || !ourSecretKey) {
         // TODO: Error Handling
         return "error";
       }
 
       const { nonce, ciphertext } = res.data;
-      const enclavePubKey = getters.enclavePublicKey;
-      const ourSecretKey = state.ourSecretKey;
 
       const msg = decryptMessage(
         ciphertext,
         nonce,
         enclavePubKey,
-        ourSecretKey as Base64
+        ourSecretKey
       );
 
       if (!msg) {
