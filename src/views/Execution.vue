@@ -6,6 +6,7 @@
       </el-col>
       <el-col :span="8">
         <Attestation />
+        <ExecRequest />
       </el-col>
     </el-row>
   </el-main>
@@ -13,6 +14,7 @@
 
 <script lang="ts">
 import { defineComponent, onMounted } from "vue";
+import ExecRequest from "@/components/ExecRequest.vue";
 import JwtDisplay from "@/components/JwtDisplay.vue";
 import Attestation from "@/components/Attestation.vue";
 import { useStore } from "vuex";
@@ -22,6 +24,7 @@ export default defineComponent({
   name: "Execution",
   components: {
     Attestation,
+    ExecRequest,
     JwtDisplay
   },
   setup() {
