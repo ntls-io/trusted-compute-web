@@ -96,6 +96,7 @@ export default createStore<State>({
         request
       );
       if (res.status !== 200) {
+        // TODO: Error Handling
         return "error";
       }
 
@@ -123,6 +124,7 @@ export default createStore<State>({
         request
       );
       if (res.status !== 200) {
+        // TODO: Error Handling
         return "error";
       }
 
@@ -149,6 +151,7 @@ export default createStore<State>({
     async decryptResponse({ state, getters }, response: UploadResponse) {
       const enclavePubKey = getters.enclavePublicKey;
       if (!enclavePubKey || !state.ourSecretKey) {
+        // TODO: Error Handling
         return "error";
       }
       return decryptMessage(
