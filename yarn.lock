@@ -1584,6 +1584,11 @@
   resolved "https://registry.yarnpkg.com/@vue/devtools-api/-/devtools-api-6.0.0-beta.10.tgz#f39da7618cee292e39c7274227c34163e30eb3ca"
   integrity sha512-nktQYRnIFrh4DdXiCBjHnsHOMZXDIVcP9qlm/DMfxmjJMtpMGrSZCOKP8j7kDhObNHyqlicwoGLd+a4hf4x9ww==
 
+"@vue/devtools-api@^6.0.0-beta.11":
+  version "6.0.0-beta.11"
+  resolved "https://registry.yarnpkg.com/@vue/devtools-api/-/devtools-api-6.0.0-beta.11.tgz#4fb4161ee41ba75f3f5198d4bfd80e4ffb7f2462"
+  integrity sha512-vpw61AkW9U8c2upjJCljHq9eh1KkD4FJ7DYbRzIETpj9WAw2VESudJZosAk4M+7npBo1Zu1jNQY03HUMVO/czQ==
+
 "@vue/eslint-config-prettier@^6.0.0":
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/@vue/eslint-config-prettier/-/eslint-config-prettier-6.0.0.tgz#ad5912b308f4ae468458e02a2b05db0b9d246700"
@@ -1782,10 +1787,10 @@
     "@webassemblyjs/wast-parser" "1.9.0"
     "@xtuc/long" "4.2.2"
 
-"@websanova/vue-upload@2.1.4":
-  version "2.1.4"
-  resolved "https://registry.yarnpkg.com/@websanova/vue-upload/-/vue-upload-2.1.4.tgz#18f9b134e1495ea9cf0a8655b126ffd28e8fec73"
-  integrity sha512-XhPuh3trj1HKmEW9yrR3/4ZwTwlywyKwxMfmhdpNIPTLqYCkHt3ABGhFjcvSgbb+x7fXKtNC8BYv9Pzm4LKI7Q==
+"@websanova/vue-upload@2.1.6":
+  version "2.1.6"
+  resolved "https://registry.yarnpkg.com/@websanova/vue-upload/-/vue-upload-2.1.6.tgz#b27105c760a26229b17de1fbea66bf1481a43037"
+  integrity sha512-db74R9G5sLxwbUP4es0GOnB6BaEXah5oDaZac1DzBd/ZY5+1hhgzghSBGWBBYilsx1U4BkwG9cfHIKU/OZM/dw==
 
 "@xtuc/ieee754@^1.2.0":
   version "1.2.0"
@@ -8997,10 +9002,12 @@ vue@^3.0.0:
     "@vue/runtime-dom" "3.0.11"
     "@vue/shared" "3.0.11"
 
-vuex@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/vuex/-/vuex-4.0.0.tgz#ac877aa76a9c45368c979471e461b520d38e6cf5"
-  integrity sha512-56VPujlHscP5q/e7Jlpqc40sja4vOhC4uJD1llBCWolVI8ND4+VzisDVkUMl+z5y0MpIImW6HjhNc+ZvuizgOw==
+vuex@4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/vuex/-/vuex-4.0.1.tgz#e83c541d6f31173969efabb2c5d1c465b682887e"
+  integrity sha512-MddakQTAnImDkK1YhEESowKSU5KcjqHH3L1ScPx1lj6NzDDX0FuRBZqJoME5O7/nvj9puudDf6xnWU2w/cqI7g==
+  dependencies:
+    "@vue/devtools-api" "^6.0.0-beta.11"
 
 watchpack-chokidar2@^2.0.1:
   version "2.0.1"
