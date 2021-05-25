@@ -96,7 +96,12 @@ export default defineComponent({
             this.loading = true;
             // Get the unproxied form data before encrypting, for clarity.
             const data = Object.assign({}, this.form);
-            await this.requestExecutionToken(data);
+            try {
+              await this.requestExecutionToken(data);
+            } catch (e) {
+              console.log(e);
+              // TODO: Error Handling
+            }
             this.loading = false;
             //TODO: trigger Dialog box here instead?
           } else {
