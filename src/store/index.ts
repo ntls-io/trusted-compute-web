@@ -40,10 +40,6 @@ export default createStore<State>({
         return null;
       }
       return base64url.toBase64(token.enclaveHeldData);
-    },
-    ourSecretKey(state) {
-      const key = state.ourSecretKey;
-      return key ?? null;
     }
   },
   mutations: {
@@ -94,7 +90,7 @@ export default createStore<State>({
         payload: messageData.ciphertext
       });
     },
-    async uploadFile({ dispatch, getters }, request: UploadRequest) {
+    async uploadFile({ dispatch, getters, state }, request: UploadRequest) {
       const res = await axios.post<UploadResponse>(
         "https://rtc-data.registree.io/data/uploads",
         request
@@ -105,13 +101,13 @@ export default createStore<State>({
 
       const { nonce, ciphertext } = res.data;
       const enclavePubKey = getters.enclavePublicKey;
-      const ourSecretKey = getters.ourSecretKey;
+      const ourSecretKey = state.ourSecretKey;
 
       const msg = decryptMessage(
         ciphertext,
         nonce,
         enclavePubKey,
-        ourSecretKey
+        ourSecretKey as Base64
       );
 
       if (!msg) {
@@ -121,7 +117,7 @@ export default createStore<State>({
 
       await dispatch("parseUploadMessage", msg);
     },
-    async postAccessForm({ commit, getters }, request: UploadRequest) {
+    async postAccessForm({ commit, getters, state }, request: UploadRequest) {
       const res = await axios.post<UploadResponse>(
         "https://rtc-data.registree.io/auth/tokens",
         request
@@ -132,13 +128,13 @@ export default createStore<State>({
 
       const { nonce, ciphertext } = res.data;
       const enclavePubKey = getters.enclavePublicKey;
-      const ourSecretKey = getters.ourSecretKey;
+      const ourSecretKey = state.ourSecretKey;
 
       const msg = decryptMessage(
         ciphertext,
         nonce,
         enclavePubKey,
-        ourSecretKey
+        ourSecretKey as Base64
       );
 
       if (!msg) {
