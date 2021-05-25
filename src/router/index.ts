@@ -11,6 +11,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/data-access",
     name: "Data Access",
     component: () => import("@/views/DataAccess.vue")
+  },
+  {
+    path: "/execution",
+    name: "Execution",
+    component: () => import("@/views/Execution.vue")
   }
 ];
 

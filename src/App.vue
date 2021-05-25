@@ -2,6 +2,7 @@
   <el-menu :router="true" mode="horizontal">
     <el-menu-item index="/">Home</el-menu-item>
     <el-menu-item index="/data-access">Data Access</el-menu-item>
+    <el-menu-item index="/execution">Execution</el-menu-item>
   </el-menu>
   <router-view />
 </template>
