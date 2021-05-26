@@ -103,7 +103,7 @@ export default createStore<State>({
 
       if (res.status !== 200 || !enclavePubKey || !ourSecretKey) {
         // TODO: Error Handling
-        return "error";
+        throw "error";
       }
 
       const { nonce, ciphertext } = res.data;
@@ -117,7 +117,7 @@ export default createStore<State>({
 
       if (!msg) {
         // TODO: Error Handling
-        return "error";
+        throw "error";
       }
 
       await dispatch("parseUploadMessage", msg);
@@ -135,7 +135,7 @@ export default createStore<State>({
 
       if (res.status !== 200 || !enclavePubKey || !ourSecretKey) {
         // TODO: Error Handling
-        return "error";
+        throw "error";
       }
 
       const { nonce, ciphertext } = res.data;
@@ -149,10 +149,8 @@ export default createStore<State>({
 
       if (!msg) {
         // TODO: Error Handling
-        return "error";
+        throw "error";
       }
-
-      //TODO: Open Dialog Box show message
 
       commit("setDecryptedMsg", msg);
     },
