@@ -35,7 +35,7 @@
         :loading="loading"
         @click="onSubmit('accessForm')"
       >
-        Create
+        Request
       </el-button>
     </el-form-item>
   </el-form>
