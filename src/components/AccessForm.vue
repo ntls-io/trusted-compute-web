@@ -46,6 +46,7 @@ import { defineComponent } from "vue";
 import elForm from "element-plus/lib/el-form";
 import { ElMessageBox } from "element-plus";
 import { mapActions, mapGetters, mapMutations, mapState } from "vuex";
+import { notifyErrors } from "@/utils/error-notification";
 
 export default defineComponent({
   data() {
@@ -96,12 +97,9 @@ export default defineComponent({
             this.loading = true;
             // Get the unproxied form data before encrypting, for clarity.
             const data = Object.assign({}, this.form);
-            try {
-              await this.requestExecutionToken(data);
-            } catch (e) {
-              console.log(e);
-              // TODO: Error Handling
-            }
+            await notifyErrors("Execution token request failed", () => {
+              return this.requestExecutionToken(data);
+            });
             this.loading = false;
             //TODO: trigger Dialog box here instead?
           } else {
