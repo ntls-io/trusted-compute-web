@@ -19,7 +19,7 @@ export interface State {
   ourSecretKey: Base64 | null;
   attestationResult: AttestationToken | null;
   uploadResult: { accessKey: string; uuid: Uint8Array } | null;
-  decryptedMessage: string | null;
+  executionToken: Uint8Array | null;
 }
 
 // TODO: add typescript typings for Vuex
@@ -31,7 +31,7 @@ export default createStore<State>({
     ourSecretKey: null,
     attestationResult: null,
     uploadResult: null,
-    decryptedMessage: null
+    executionToken: null
   },
   getters: {
     enclavePublicKey(state) {
@@ -59,7 +59,7 @@ export default createStore<State>({
       state.uploadResult = uploadResult;
     },
     setDecryptedMsg(state, msg) {
-      state.decryptedMessage = msg;
+      state.executionToken = msg;
     }
   },
   actions: {

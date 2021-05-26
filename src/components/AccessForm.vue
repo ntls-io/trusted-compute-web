@@ -84,7 +84,7 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(["ourSecretKey", "decryptedMessage"]),
+    ...mapState(["ourSecretKey", "executionToken"]),
     ...mapGetters(["enclavePublicKey"])
   },
   methods: {
@@ -119,7 +119,7 @@ export default defineComponent({
     }
   },
   watch: {
-    decryptedMessage(newState: string | null) {
+    executionToken(newState: string | null) {
       if (newState) {
         this.handleMsgDisplay(newState);
       }
