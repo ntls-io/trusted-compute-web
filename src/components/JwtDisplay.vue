@@ -1,5 +1,5 @@
 <template>
-  <el-card v-loading="busy.fetchingToken || Boolean(!jwtToken)">
+  <el-card v-loading="isBusy.fetchingToken || Boolean(!jwtToken)">
     <template #header>
       <div class="card-header">
         <span>JWT Token</span>
@@ -57,16 +57,12 @@ export default defineComponent({
     return { copy };
   },
   computed: {
-    ...mapState({
-      jwtToken: "jwtToken"
-    })
+    ...mapState(["jwtToken", "isBusy"])
   },
   methods: {
     ...mapActions(["requestAttestation"]),
     async getAttestation() {
-      this.busy.fetchingToken = true;
       await this.requestAttestation();
-      this.busy.fetchingToken = false;
     }
   }
 });

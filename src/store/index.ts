@@ -23,6 +23,7 @@ export interface State {
   attestationResult: AttestationToken | null;
   uploadResult: UploadResult | null;
   executionToken: Uint8Array | null;
+  isBusy: { fetchingToken: boolean | null | string };
 }
 
 // TODO: add typescript typings for Vuex
@@ -33,7 +34,8 @@ export default createStore<State>({
     jwtToken: null,
     attestationResult: null,
     uploadResult: null,
-    executionToken: null
+    executionToken: null,
+    isBusy: { fetchingToken: null }
   },
   getters: {
     enclavePublicKey(state) {
@@ -58,14 +60,22 @@ export default createStore<State>({
     //      but for now, just save it as raw bytes.
     setExecutionToken(state: State, executionToken: Uint8Array): void {
       state.executionToken = executionToken;
+    },
+    setBusy(
+      state,
+      payload: { state: "fetchingToken"; value: null | boolean | string }
+    ) {
+      state.isBusy[payload.state] = payload.value;
     }
   },
   actions: {
     async requestAttestation({ commit }) {
+      commit("setBusy", { state: "fetchingToken", value: true });
       const token = await fetchAttestationToken();
       const attestationResult = verifyToken(token);
       commit("saveToken", token);
       commit("saveAttestationResult", attestationResult);
+      commit("setBusy", { state: "fetchingToken", value: false });
     },
     saveToken({ commit }, token) {
       commit("saveToken", token);
