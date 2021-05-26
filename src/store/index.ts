@@ -90,7 +90,10 @@ export default createStore<State>({
         payload: messageData.ciphertext
       });
     },
-    async uploadFile({ dispatch, getters, state }, request: UploadRequest) {
+    async uploadFile(
+      { dispatch, getters, state },
+      request: UploadRequest
+    ): Promise<void> {
       const res = await axios.post<UploadResponse>(
         "https://rtc-data.registree.io/data/uploads",
         request
@@ -119,7 +122,10 @@ export default createStore<State>({
 
       await dispatch("parseUploadMessage", msg);
     },
-    async postAccessForm({ commit, getters, state }, request: UploadRequest) {
+    async postAccessForm(
+      { commit, getters, state },
+      request: UploadRequest
+    ): Promise<void> {
       const res = await axios.post<UploadResponse>(
         "https://rtc-data.registree.io/auth/tokens",
         request
