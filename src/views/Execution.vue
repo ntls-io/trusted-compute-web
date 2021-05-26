@@ -30,14 +30,14 @@ export default defineComponent({
   setup() {
     const store = useStore();
 
-    async function getAttestation() {
+    async function getAttestation(path: string) {
       await notifyErrors(
         "Attestation failed",
-        async () => await store.dispatch("requestAttestation")
+        async () => await store.dispatch("requestAttestation", path)
       );
     }
     onMounted(async () => {
-      await getAttestation();
+      await getAttestation("exec/attest");
     });
   }
 });

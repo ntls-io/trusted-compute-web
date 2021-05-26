@@ -69,9 +69,9 @@ export default createStore<State>({
     }
   },
   actions: {
-    async requestAttestation({ commit }) {
+    async requestAttestation({ commit }, path?: string) {
       commit("setBusy", { state: "fetchingToken", value: true });
-      const token = await fetchAttestationToken();
+      const token = await fetchAttestationToken(path);
       const attestationResult = verifyToken(token);
       commit("saveToken", token);
       commit("saveAttestationResult", attestationResult);
@@ -118,9 +118,8 @@ export default createStore<State>({
  * In non-production mode (`NODE_ENV !== "production"`), if the request fails,
  * log the error and fall back to the local token for testing.
  */
-async function fetchAttestationToken(): Promise<string> {
-  const url =
-    process.env.VUE_APP_JWT_URL ?? "https://rtc-data.registree.io/data/attest";
+async function fetchAttestationToken(path?: string): Promise<string> {
+  const url = process.env.VUE_APP_RTC_DATA + (path ?? "data/attest");
 
   if (process.env.NODE_ENV === "production") {
     const res = await axios.get<string>(url);
