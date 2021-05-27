@@ -4,6 +4,7 @@ import {
   encryptBlob,
   Base64,
   decryptMessage,
+  EncryptedMessage,
   encryptJson
 } from "@/utils/cryptography";
 import { verifyToken } from "@/utils/jwt";
@@ -74,92 +75,33 @@ export default createStore<State>({
     saveToken({ commit }, token) {
       commit("saveToken", token);
     },
-    async encryptAndUploadFile({ commit, dispatch, getters }, message: File) {
-      const enclavePubKey: string = checkDefined(getters.enclavePublicKey);
-      const { ourData, messageData } = await encryptBlob(
-        message,
-        enclavePubKey as Base64
+
+    /**
+     * Upload a data file, and save the resulting UUID and access token.
+     */
+    async encryptAndUploadFile(context, message: File): Promise<void> {
+      const uploadResult = parseUploadResponse(
+        await sealedPost(
+          "https://rtc-data.registree.io/data/uploads",
+          message,
+          checkDefined(context.getters.enclavePublicKey),
+          encryptBlob
+        )
       );
-      commit("saveSecretKey", ourData.ourSecretKey);
-      dispatch("uploadFile", {
-        metadata: {
-          nonce: messageData.nonce,
-          uploader_pub_key: messageData.ourPublicKey
-        },
-        payload: messageData.ciphertext
-      });
-    },
-    async uploadFile(
-      { dispatch, getters, state },
-      request: SealedRequest
-    ): Promise<void> {
-      const res = await axios.post<SealedResponse>(
-        "https://rtc-data.registree.io/data/uploads",
-        request,
-        { validateStatus: status => status === 200 }
-      );
-      const enclavePubKey: string = checkDefined(getters.enclavePublicKey);
-      const ourSecretKey: Base64 = checkDefined(state.ourSecretKey);
-
-      const { nonce, ciphertext } = res.data;
-
-      const msg: Uint8Array = checkDefined(
-        decryptMessage(ciphertext, nonce, enclavePubKey, ourSecretKey)
-      );
-
-      await dispatch("parseUploadMessage", msg);
-    },
-    async postAccessForm(
-      { commit, getters, state },
-      request: SealedRequest
-    ): Promise<void> {
-      const res = await axios.post<SealedResponse>(
-        "https://rtc-data.registree.io/auth/tokens",
-        request,
-        { validateStatus: status => status === 200 }
-      );
-      const enclavePubKey: string = checkDefined(getters.enclavePublicKey);
-      const ourSecretKey: Base64 = checkDefined(state.ourSecretKey);
-
-      const { nonce, ciphertext } = res.data;
-
-      const msg: Uint8Array = checkDefined(
-        decryptMessage(ciphertext, nonce, enclavePubKey, ourSecretKey)
-      );
-
-      commit("setExecutionToken", msg);
-    },
-    async parseUploadMessage({ commit }, message: Uint8Array) {
-      console.log("parseUploadMessage:", message);
-      const accessKey = btoa(message.slice(0, 24).toString());
-      const uuid = message.slice(24);
-      commit("saveUploadResult", { accessKey, uuid });
+      context.commit("saveUploadResult", uploadResult);
     },
 
     /**
      * Submit an execution token request.
-     *
-     * @see #actions#postAccessForm
-     * @see #mutations#setExecutionToken
      */
-    async requestExecutionToken(
-      { commit, dispatch, getters },
-      executionTokenRequest
-    ): Promise<void> {
-      const enclavePubKey: string = checkDefined(getters.enclavePublicKey);
-      const { ourData, messageData } = await encryptJson(
+    async requestExecutionToken(context, executionTokenRequest): Promise<void> {
+      const executionToken = await sealedPost(
+        "https://rtc-data.registree.io/data/uploads",
         executionTokenRequest,
-        enclavePubKey as Base64
+        checkDefined(context.getters.enclavePublicKey),
+        encryptJson
       );
-
-      commit("saveSecretKey", ourData.ourSecretKey);
-      await dispatch("postAccessForm", {
-        metadata: {
-          nonce: messageData.nonce,
-          uploader_pub_key: messageData.ourPublicKey
-        },
-        payload: messageData.ciphertext
-      });
+      context.commit("setExecutionToken", executionToken);
     }
   },
   modules: {}
@@ -198,4 +140,55 @@ async function fetchAttestationToken(): Promise<string> {
       return tokenFile.token;
     }
   }
+}
+
+/**
+ * Helper: Post a sealed request, and unseal the response.
+ *
+ * @param url - The endpoint URL to post to
+ * @param value - The unsealed value to seal and post
+ * @param enclavePubKey - The remote enclave's public key
+ * @param encrypt - Function to encrypt (seal) the value with
+ * @returns - The unsealed response bytes
+ */
+async function sealedPost<T>(
+  url: string,
+  value: T,
+  enclavePubKey: Base64,
+  encrypt: (value: T, theirPublicKey: Base64) => Promise<EncryptedMessage>
+): Promise<Uint8Array> {
+  // Seal:
+  const {
+    ourData: { ourSecretKey: ephemeralSecretKey },
+    messageData
+  }: EncryptedMessage = await encrypt(value, enclavePubKey);
+  const requestBody: SealedRequest = {
+    metadata: {
+      nonce: messageData.nonce,
+      uploader_pub_key: messageData.ourPublicKey
+    },
+    payload: messageData.ciphertext
+  };
+
+  // Post:
+  const axiosResponse = await axios.post<SealedResponse>(url, requestBody, {
+    validateStatus: status => status === 200
+  });
+  const responseBody: SealedResponse = axiosResponse.data;
+
+  // Unseal:
+  const { nonce, ciphertext } = responseBody;
+  return checkDefined(
+    decryptMessage(ciphertext, nonce, enclavePubKey, ephemeralSecretKey)
+  );
+}
+
+/**
+ * Helper: Parse raw data upload result to a data access key and UUID.
+ */
+function parseUploadResponse(bytes: Uint8Array): UploadResult {
+  return {
+    accessKey: btoa(bytes.slice(0, 24).toString()),
+    uuid: bytes.slice(24)
+  };
 }
