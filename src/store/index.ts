@@ -96,12 +96,13 @@ export default createStore<State>({
     ): Promise<void> {
       const res = await axios.post<UploadResponse>(
         "https://rtc-data.registree.io/data/uploads",
-        request
+        request,
+        { validateStatus: status => status === 200 }
       );
       const enclavePubKey = getters.enclavePublicKey;
       const ourSecretKey = state.ourSecretKey;
 
-      if (res.status !== 200 || !enclavePubKey || !ourSecretKey) {
+      if (!enclavePubKey || !ourSecretKey) {
         // TODO: Error Handling
         throw "error";
       }
@@ -128,12 +129,13 @@ export default createStore<State>({
     ): Promise<void> {
       const res = await axios.post<UploadResponse>(
         "https://rtc-data.registree.io/auth/tokens",
-        request
+        request,
+        { validateStatus: status => status === 200 }
       );
       const enclavePubKey = getters.enclavePublicKey;
       const ourSecretKey = state.ourSecretKey;
 
-      if (res.status !== 200 || !enclavePubKey || !ourSecretKey) {
+      if (!enclavePubKey || !ourSecretKey) {
         // TODO: Error Handling
         throw "error";
       }
