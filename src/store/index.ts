@@ -12,11 +12,16 @@ import base64url from "base64url";
 import { SealedRequest, SealedResponse } from "@/models/sealed-calls";
 import axios from "axios";
 
+interface UploadResult {
+  accessKey: string;
+  uuid: Uint8Array;
+}
+
 export interface State {
   jwtToken: string | null;
   ourSecretKey: Base64 | null;
   attestationResult: AttestationToken | null;
-  uploadResult: { accessKey: string; uuid: Uint8Array } | null;
+  uploadResult: UploadResult | null;
   executionToken: Uint8Array | null;
 }
 
@@ -50,10 +55,7 @@ export default createStore<State>({
     saveSecretKey(state, secretKey: Base64) {
       state.ourSecretKey = secretKey;
     },
-    saveUploadResult(
-      state,
-      uploadResult: { accessKey: string; uuid: Uint8Array }
-    ) {
+    saveUploadResult(state, uploadResult: UploadResult) {
       state.uploadResult = uploadResult;
     },
     // XXX: The execution token will probably be a JWT value later,
