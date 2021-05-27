@@ -177,13 +177,23 @@ export default createStore<State>({
       const uuid = message.slice(24);
       commit("saveUploadResult", { accessKey, uuid });
     },
-    async requestExecutionToken({ commit, dispatch, getters }, data) {
+
+    /**
+     * Submit an execution token request.
+     *
+     * @see #actions#postAccessForm
+     * @see #mutations#setExecutionToken
+     */
+    async requestExecutionToken(
+      { commit, dispatch, getters },
+      executionTokenRequest
+    ): Promise<void> {
       const enclavePubKey = getters.enclavePublicKey;
       if (!enclavePubKey) {
-        return null;
+        throw "error";
       }
       const { ourData, messageData } = await encryptJson(
-        data,
+        executionTokenRequest,
         enclavePubKey as Base64
       );
 
