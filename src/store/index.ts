@@ -20,7 +20,6 @@ interface UploadResult {
 
 export interface State {
   jwtToken: string | null;
-  ourSecretKey: Base64 | null;
   attestationResult: AttestationToken | null;
   uploadResult: UploadResult | null;
   executionToken: Uint8Array | null;
@@ -32,7 +31,6 @@ export default createStore<State>({
   plugins: process.env.NODE_ENV !== "production" ? [createLogger()] : [],
   state: {
     jwtToken: null,
-    ourSecretKey: null,
     attestationResult: null,
     uploadResult: null,
     executionToken: null
@@ -52,9 +50,6 @@ export default createStore<State>({
     },
     saveAttestationResult(state, attestationResult) {
       state.attestationResult = attestationResult;
-    },
-    saveSecretKey(state, secretKey: Base64) {
-      state.ourSecretKey = secretKey;
     },
     saveUploadResult(state, uploadResult: UploadResult) {
       state.uploadResult = uploadResult;
