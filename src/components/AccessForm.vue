@@ -111,7 +111,7 @@ export default defineComponent({
     },
     async handleMsgDisplay(executionToken: Uint8Array) {
       await ElMessageBox({
-        title: "Something",
+        title: "Please copy and save this execution token",
         message: util.encodeBase64(executionToken),
         beforeClose: () => {
           this.setExecutionToken(null);
