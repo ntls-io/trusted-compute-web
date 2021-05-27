@@ -8,10 +8,7 @@ import {
 import { verifyToken } from "@/utils/jwt";
 import { AttestationToken } from "@/utils/attestation-token";
 import base64url from "base64url";
-import {
-  Request as UploadRequest,
-  Response as UploadResponse
-} from "@/models/data-upload";
+import { SealedRequest, SealedResponse } from "@/models/sealed-calls";
 import axios from "axios";
 
 export interface State {
@@ -94,9 +91,9 @@ export default createStore<State>({
     },
     async uploadFile(
       { dispatch, getters, state },
-      request: UploadRequest
+      request: SealedRequest
     ): Promise<void> {
-      const res = await axios.post<UploadResponse>(
+      const res = await axios.post<SealedResponse>(
         "https://rtc-data.registree.io/data/uploads",
         request,
         { validateStatus: status => status === 200 }
@@ -127,9 +124,9 @@ export default createStore<State>({
     },
     async postAccessForm(
       { commit, getters, state },
-      request: UploadRequest
+      request: SealedRequest
     ): Promise<void> {
-      const res = await axios.post<UploadResponse>(
+      const res = await axios.post<SealedResponse>(
         "https://rtc-data.registree.io/auth/tokens",
         request,
         { validateStatus: status => status === 200 }
