@@ -6,19 +6,15 @@ import util from "tweetnacl-util";
 
 export type Base64 = string;
 
-export interface MessageData {
-  ourPublicKey: Base64;
-  nonce: Base64;
-  ciphertext: Base64;
-}
-
-export interface OurData {
-  ourSecretKey: Base64;
-}
-
 export interface EncryptedMessage {
-  readonly ourData: OurData;
-  readonly messageData: MessageData;
+  readonly ourData: {
+    ourSecretKey: Base64;
+  };
+  readonly messageData: {
+    ourPublicKey: Base64;
+    nonce: Base64;
+    ciphertext: Base64;
+  };
 }
 
 /**
