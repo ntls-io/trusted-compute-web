@@ -7,6 +7,7 @@ import util from "tweetnacl-util";
 export type Base64 = string;
 
 export interface EncryptedMessage {
+  // TODO: Remove the secret key from this interface, once we have better local key management?
   readonly ourData: {
     ourSecretKey: Base64;
   };
