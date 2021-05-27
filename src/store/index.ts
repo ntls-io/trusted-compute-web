@@ -158,19 +158,6 @@ export default createStore<State>({
 
       commit("setExecutionToken", msg);
     },
-    async decryptResponse({ state, getters }, response: UploadResponse) {
-      const enclavePubKey = getters.enclavePublicKey;
-      if (!enclavePubKey || !state.ourSecretKey) {
-        // TODO: Error Handling
-        return "error";
-      }
-      return decryptMessage(
-        response.ciphertext,
-        response.nonce,
-        enclavePubKey,
-        state.ourSecretKey
-      );
-    },
     async parseUploadMessage({ commit }, message: Uint8Array) {
       console.log("parseUploadMessage:", message);
       const accessKey = btoa(message.slice(0, 24).toString());
