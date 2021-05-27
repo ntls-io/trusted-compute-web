@@ -47,6 +47,7 @@ import elForm from "element-plus/lib/el-form";
 import { ElMessageBox } from "element-plus";
 import { mapActions, mapGetters, mapMutations, mapState } from "vuex";
 import { notifyErrors } from "@/utils/error-notification";
+import util from "tweetnacl-util";
 
 export default defineComponent({
   data() {
@@ -89,7 +90,7 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(["requestExecutionToken"]),
-    ...mapMutations(["setDecryptedMsg"]),
+    ...mapMutations(["setExecutionToken"]),
     onSubmit(formName: string) {
       (this.$refs[formName] as typeof elForm).validate(
         async (valid: boolean) => {
@@ -108,18 +109,18 @@ export default defineComponent({
         }
       );
     },
-    async handleMsgDisplay(message: string) {
+    async handleMsgDisplay(executionToken: Uint8Array) {
       await ElMessageBox({
         title: "Something",
-        message,
+        message: util.encodeBase64(executionToken),
         beforeClose: () => {
-          this.setDecryptedMsg(null);
+          this.setExecutionToken(null);
         }
       });
     }
   },
   watch: {
-    executionToken(newState: string | null) {
+    executionToken(newState: Uint8Array | null) {
       if (newState) {
         this.handleMsgDisplay(newState);
       }

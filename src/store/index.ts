@@ -58,8 +58,8 @@ export default createStore<State>({
     ) {
       state.uploadResult = uploadResult;
     },
-    setDecryptedMsg(state, msg) {
-      state.executionToken = msg;
+    setExecutionToken(state: State, executionToken: Uint8Array): void {
+      state.executionToken = executionToken;
     }
   },
   actions: {
@@ -154,7 +154,7 @@ export default createStore<State>({
         throw "error";
       }
 
-      commit("setDecryptedMsg", msg);
+      commit("setExecutionToken", msg);
     },
     async decryptResponse({ state, getters }, response: UploadResponse) {
       const enclavePubKey = getters.enclavePublicKey;
