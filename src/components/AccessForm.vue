@@ -101,7 +101,6 @@ export default defineComponent({
               return this.requestExecutionToken(data);
             });
             this.loading = false;
-            //TODO: trigger Dialog box here instead?
           } else {
             console.log("error submit!!");
             return false;
