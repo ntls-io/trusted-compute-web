@@ -58,6 +58,8 @@ export default createStore<State>({
     ) {
       state.uploadResult = uploadResult;
     },
+    // XXX: The execution token will probably be a JWT value later,
+    //      but for now, just save it as raw bytes.
     setExecutionToken(state: State, executionToken: Uint8Array): void {
       state.executionToken = executionToken;
     }
