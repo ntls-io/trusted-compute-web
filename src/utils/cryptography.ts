@@ -115,10 +115,8 @@ function encryptBox(
   ourPublicKey: Uint8Array;
   ourSecretKey: Uint8Array;
 } {
-  const {
-    publicKey: ourPublicKey,
-    secretKey: ourSecretKey
-  } = nacl.box.keyPair();
+  const { publicKey: ourPublicKey, secretKey: ourSecretKey } =
+    nacl.box.keyPair();
   const nonce = nacl.randomBytes(nacl.box.nonceLength);
   const ciphertext = nacl.box(plaintext, nonce, theirPublicKey, ourSecretKey);
   return { ciphertext, nonce, ourPublicKey, ourSecretKey };
