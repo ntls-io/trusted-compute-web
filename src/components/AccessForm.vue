@@ -45,7 +45,7 @@
 import { defineComponent } from "vue";
 import elForm from "element-plus/lib/el-form";
 import { ElMessageBox } from "element-plus";
-import { mapActions, mapGetters, mapMutations, mapState } from "vuex";
+import { mapActions, mapMutations, mapState } from "vuex";
 import { notifyErrors } from "@/utils/error-notification";
 import util from "tweetnacl-util";
 
@@ -85,8 +85,7 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(["ourSecretKey", "executionToken"]),
-    ...mapGetters(["enclavePublicKey"])
+    ...mapState(["executionToken"])
   },
   methods: {
     ...mapActions(["requestExecutionToken"]),
