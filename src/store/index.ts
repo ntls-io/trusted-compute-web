@@ -1,3 +1,4 @@
+import { checkDefined } from "@/utils/checks";
 import { createLogger, createStore } from "vuex";
 import {
   encryptBlob,
@@ -72,10 +73,7 @@ export default createStore<State>({
       commit("saveToken", token);
     },
     async encryptAndUploadFile({ commit, dispatch, getters }, message: File) {
-      const enclavePubKey = getters.enclavePublicKey;
-      if (!enclavePubKey) {
-        return null;
-      }
+      const enclavePubKey: string = checkDefined(getters.enclavePublicKey);
       const { ourData, messageData } = await encryptBlob(
         message,
         enclavePubKey as Base64
@@ -98,27 +96,14 @@ export default createStore<State>({
         request,
         { validateStatus: status => status === 200 }
       );
-      const enclavePubKey = getters.enclavePublicKey;
-      const ourSecretKey = state.ourSecretKey;
-
-      if (!enclavePubKey || !ourSecretKey) {
-        // TODO: Error Handling
-        throw "error";
-      }
+      const enclavePubKey: string = checkDefined(getters.enclavePublicKey);
+      const ourSecretKey: Base64 = checkDefined(state.ourSecretKey);
 
       const { nonce, ciphertext } = res.data;
 
-      const msg = decryptMessage(
-        ciphertext,
-        nonce,
-        enclavePubKey,
-        ourSecretKey
+      const msg: Uint8Array = checkDefined(
+        decryptMessage(ciphertext, nonce, enclavePubKey, ourSecretKey)
       );
-
-      if (!msg) {
-        // TODO: Error Handling
-        throw "error";
-      }
 
       await dispatch("parseUploadMessage", msg);
     },
@@ -131,27 +116,14 @@ export default createStore<State>({
         request,
         { validateStatus: status => status === 200 }
       );
-      const enclavePubKey = getters.enclavePublicKey;
-      const ourSecretKey = state.ourSecretKey;
-
-      if (!enclavePubKey || !ourSecretKey) {
-        // TODO: Error Handling
-        throw "error";
-      }
+      const enclavePubKey: string = checkDefined(getters.enclavePublicKey);
+      const ourSecretKey: Base64 = checkDefined(state.ourSecretKey);
 
       const { nonce, ciphertext } = res.data;
 
-      const msg = decryptMessage(
-        ciphertext,
-        nonce,
-        enclavePubKey,
-        ourSecretKey
+      const msg: Uint8Array = checkDefined(
+        decryptMessage(ciphertext, nonce, enclavePubKey, ourSecretKey)
       );
-
-      if (!msg) {
-        // TODO: Error Handling
-        throw "error";
-      }
 
       commit("setExecutionToken", msg);
     },
@@ -172,10 +144,7 @@ export default createStore<State>({
       { commit, dispatch, getters },
       executionTokenRequest
     ): Promise<void> {
-      const enclavePubKey = getters.enclavePublicKey;
-      if (!enclavePubKey) {
-        throw "error";
-      }
+      const enclavePubKey: string = checkDefined(getters.enclavePublicKey);
       const { ourData, messageData } = await encryptJson(
         executionTokenRequest,
         enclavePubKey as Base64
