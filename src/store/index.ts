@@ -198,7 +198,7 @@ export default createStore<State>({
       );
 
       commit("saveSecretKey", ourData.ourSecretKey);
-      dispatch("postAccessForm", {
+      await dispatch("postAccessForm", {
         metadata: {
           nonce: messageData.nonce,
           uploader_pub_key: messageData.ourPublicKey
