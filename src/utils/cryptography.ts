@@ -7,6 +7,7 @@ import util from "tweetnacl-util";
 export type Base64 = string;
 
 export interface EncryptedMessage {
+  // TODO: Remove the secret key from this interface, once we have better local key management?
   readonly ourData: {
     ourSecretKey: Base64;
   };
@@ -111,10 +112,8 @@ function encryptBox(
   ourPublicKey: Uint8Array;
   ourSecretKey: Uint8Array;
 } {
-  const {
-    publicKey: ourPublicKey,
-    secretKey: ourSecretKey
-  } = nacl.box.keyPair();
+  const { publicKey: ourPublicKey, secretKey: ourSecretKey } =
+    nacl.box.keyPair();
   const nonce = nacl.randomBytes(nacl.box.nonceLength);
   const ciphertext = nacl.box(plaintext, nonce, theirPublicKey, ourSecretKey);
   return { ciphertext, nonce, ourPublicKey, ourSecretKey };

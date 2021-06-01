@@ -1,19 +1,28 @@
+import { checkDefined } from "@/utils/checks";
 import { createLogger, createStore } from "vuex";
-import { encryptBlob, Base64, decryptMessage } from "@/utils/cryptography";
+import {
+  encryptBlob,
+  Base64,
+  decryptMessage,
+  EncryptedMessage,
+  encryptJson
+} from "@/utils/cryptography";
 import { verifyToken } from "@/utils/jwt";
 import { AttestationToken } from "@/utils/attestation-token";
 import base64url from "base64url";
-import {
-  Request as UploadRequest,
-  Response as UploadResponse
-} from "@/models/data-upload";
+import { SealedRequest, SealedResponse } from "@/models/sealed-calls";
 import axios from "axios";
+
+interface UploadResult {
+  accessKey: string;
+  uuid: Uint8Array;
+}
 
 export interface State {
   jwtToken: string | null;
-  ourSecretKey: Base64 | null;
   attestationResult: AttestationToken | null;
-  uploadResult: { accessKey: string; uuid: Uint8Array } | null;
+  uploadResult: UploadResult | null;
+  executionToken: Uint8Array | null;
 }
 
 // TODO: add typescript typings for Vuex
@@ -22,9 +31,9 @@ export default createStore<State>({
   plugins: process.env.NODE_ENV !== "production" ? [createLogger()] : [],
   state: {
     jwtToken: null,
-    ourSecretKey: null,
     attestationResult: null,
-    uploadResult: null
+    uploadResult: null,
+    executionToken: null
   },
   getters: {
     enclavePublicKey(state) {
@@ -42,14 +51,13 @@ export default createStore<State>({
     saveAttestationResult(state, attestationResult) {
       state.attestationResult = attestationResult;
     },
-    saveSecretKey(state, secretKey: Base64) {
-      state.ourSecretKey = secretKey;
-    },
-    saveUploadResult(
-      state,
-      uploadResult: { accessKey: string; uuid: Uint8Array }
-    ) {
+    saveUploadResult(state, uploadResult: UploadResult) {
       state.uploadResult = uploadResult;
+    },
+    // XXX: The execution token will probably be a JWT value later,
+    //      but for now, just save it as raw bytes.
+    setExecutionToken(state: State, executionToken: Uint8Array): void {
+      state.executionToken = executionToken;
     }
   },
   actions: {
@@ -62,59 +70,33 @@ export default createStore<State>({
     saveToken({ commit }, token) {
       commit("saveToken", token);
     },
-    async encryptAndUploadFile({ commit, dispatch, getters }, message: File) {
-      const enclavePubKey = getters.enclavePublicKey;
-      if (!enclavePubKey) {
-        return null;
-      }
-      const { ourData, messageData } = await encryptBlob(
-        message,
-        enclavePubKey as Base64
+
+    /**
+     * Upload a data file, and save the resulting UUID and access token.
+     */
+    async encryptAndUploadFile(context, message: File): Promise<void> {
+      const uploadResult = parseUploadResponse(
+        await sealedPost(
+          "https://rtc-data.registree.io/data/uploads",
+          message,
+          checkDefined(context.getters.enclavePublicKey),
+          encryptBlob
+        )
       );
-      commit("saveSecretKey", ourData.ourSecretKey);
-      dispatch("uploadFile", {
-        metadata: {
-          nonce: messageData.nonce,
-          uploader_pub_key: messageData.ourPublicKey
-        },
-        payload: messageData.ciphertext
-      });
+      context.commit("saveUploadResult", uploadResult);
     },
-    async uploadFile({ dispatch }, request: UploadRequest) {
-      const res = await axios.post<UploadResponse>(
+
+    /**
+     * Submit an execution token request.
+     */
+    async requestExecutionToken(context, executionTokenRequest): Promise<void> {
+      const executionToken = await sealedPost(
         "https://rtc-data.registree.io/data/uploads",
-        request
+        executionTokenRequest,
+        checkDefined(context.getters.enclavePublicKey),
+        encryptJson
       );
-      if (res.status !== 200) {
-        return "error";
-      }
-      await dispatch("decryptUploadResponse", res.data);
-    },
-    async decryptUploadResponse(
-      { state, dispatch, getters },
-      response: UploadResponse
-    ) {
-      const enclavePubKey = getters.enclavePublicKey;
-      if (!enclavePubKey || !state.ourSecretKey) {
-        return "error";
-      }
-      const msg = decryptMessage(
-        response.ciphertext,
-        response.nonce,
-        enclavePubKey,
-        state.ourSecretKey
-      );
-      if (!msg) {
-        // TODO: Error Handling
-        return "error";
-      }
-      await dispatch("parseUploadMessage", msg);
-    },
-    async parseUploadMessage({ commit }, message: Uint8Array) {
-      console.log("parseUploadMessage:", message);
-      const accessKey = btoa(message.slice(0, 24).toString());
-      const uuid = message.slice(24);
-      commit("saveUploadResult", { accessKey, uuid });
+      context.commit("setExecutionToken", executionToken);
     }
   },
   modules: {}
@@ -153,4 +135,55 @@ async function fetchAttestationToken(): Promise<string> {
       return tokenFile.token;
     }
   }
+}
+
+/**
+ * Helper: Post a sealed request, and unseal the response.
+ *
+ * @param url - The endpoint URL to post to
+ * @param value - The unsealed value to seal and post
+ * @param enclavePubKey - The remote enclave's public key
+ * @param encrypt - Function to encrypt (seal) the value with
+ * @returns - The unsealed response bytes
+ */
+async function sealedPost<T>(
+  url: string,
+  value: T,
+  enclavePubKey: Base64,
+  encrypt: (value: T, theirPublicKey: Base64) => Promise<EncryptedMessage>
+): Promise<Uint8Array> {
+  // Seal:
+  const {
+    ourData: { ourSecretKey: ephemeralSecretKey },
+    messageData
+  }: EncryptedMessage = await encrypt(value, enclavePubKey);
+  const requestBody: SealedRequest = {
+    metadata: {
+      nonce: messageData.nonce,
+      uploader_pub_key: messageData.ourPublicKey
+    },
+    payload: messageData.ciphertext
+  };
+
+  // Post:
+  const axiosResponse = await axios.post<SealedResponse>(url, requestBody, {
+    validateStatus: status => status === 200
+  });
+  const responseBody: SealedResponse = axiosResponse.data;
+
+  // Unseal:
+  const { nonce, ciphertext } = responseBody;
+  return checkDefined(
+    decryptMessage(ciphertext, nonce, enclavePubKey, ephemeralSecretKey)
+  );
+}
+
+/**
+ * Helper: Parse raw data upload result to a data access key and UUID.
+ */
+function parseUploadResponse(bytes: Uint8Array): UploadResult {
+  return {
+    accessKey: btoa(bytes.slice(0, 24).toString()),
+    uuid: bytes.slice(24)
+  };
 }
