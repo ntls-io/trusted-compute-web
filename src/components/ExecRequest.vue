@@ -1,5 +1,5 @@
 <template>
-  <el-form label-width="auto" :model="form" ref="execForm">
+  <el-form label-width="auto" :model="form" :rules="rules" ref="execForm">
     <el-form-item label="Token" prop="exec_token">
       <el-input
         v-model="form.exec_token"
@@ -31,6 +31,15 @@ export default defineComponent({
     const state = reactive({
       form: {
         exec_token: null
+      },
+      rules: {
+        access_key: [
+          {
+            required: true,
+            message: "Token is required",
+            trigger: "change"
+          }
+        ]
       }
     });
 
