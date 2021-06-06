@@ -107,6 +107,9 @@ export default createStore<State>({
         encryptJson
       );
       context.commit("setExecutionToken", executionToken);
+    },
+    async executionRequest(): Promise<void> {
+      //TODO: Encrypt the execution token
     }
   },
   modules: {}
