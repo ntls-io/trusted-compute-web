@@ -13,6 +13,7 @@
       <el-button
         type="primary"
         :disabled="!Boolean(form?.exec_token?.trim())"
+        :loading="loading"
         @click="onSubmit('execForm')"
       >
         Execute
@@ -22,6 +23,7 @@
 </template>
 
 <script lang="ts">
+import { notifyErrors } from "@/utils/error-notification";
 import { ElForm } from "element-plus";
 import { defineComponent, reactive, toRefs } from "vue";
 import { mapActions } from "vuex";
@@ -32,6 +34,7 @@ export default defineComponent({
       form: {
         exec_token: null
       },
+      loading: false,
       rules: {
         access_key: [
           {
@@ -51,10 +54,13 @@ export default defineComponent({
       (this.$refs[formName] as typeof ElForm).validate(
         async (valid: boolean) => {
           if (valid) {
-            // Get the unproxied form data before encrypting, for clarity.
-            // const data = Object.assign({}, this.form);
-            //TODO: Encrypt the execution token with the exec_enclave's public key and a local ephemeral private key (use existing box functions)
-            //TODO: Send the encrypted token + some execution parameters to /exec/request
+            this.loading = true;
+            const { exec_token } = Object.assign({}, this.form);
+
+            await notifyErrors("Execution token request failed", () => {
+              return this.executionRequest(exec_token);
+            });
+            this.loading = false;
             //TODO: Display the result from the execution (or poll an endpoint to display the status and then the result when ready)
           } else {
             console.log("error submit!!");

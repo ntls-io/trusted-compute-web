@@ -108,8 +108,17 @@ export default createStore<State>({
       );
       context.commit("setExecutionToken", executionToken);
     },
-    async executionRequest(): Promise<void> {
+    async executionRequest({ getters }, executionToken): Promise<void> {
       //TODO: Encrypt the execution token
+      const result = await sealedPost(
+        "https://rtc-data.registree.io/exec/request",
+        executionToken,
+        checkDefined(getters.enclavePublicKey),
+        encryptJson
+      );
+      console.log(result);
+      //TODO: save result before dsiplaying
+      // commit("setExecutionResult", result);
     }
   },
   modules: {}
