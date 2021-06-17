@@ -1,5 +1,12 @@
 <template>
-  <el-form label-width="auto" :model="form" :rules="rules" ref="accessForm">
+  <el-form
+    label-width="auto"
+    :model="form"
+    :rules="rules"
+    :disabled="loading"
+    ref="accessForm"
+  >
+    <pre>{{ form }}</pre>
     <el-form-item label="Key" prop="access_key">
       <el-input
         v-model="form.access_key"
@@ -42,22 +49,31 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { computed, defineComponent, reactive, ref, toRefs, watch } from "vue";
 import elForm from "element-plus/lib/el-form";
 import { ElMessageBox } from "element-plus";
-import { mapActions, mapMutations, mapState } from "vuex";
+import { useStore } from "vuex";
 import { notifyErrors } from "@/utils/error-notification";
 import util from "tweetnacl-util";
 
+interface Form {
+  access_key: string | null;
+  uuid: string | null;
+  hash: string | null;
+  nofu: number;
+}
+
 export default defineComponent({
-  data() {
-    return {
-      form: {
+  setup() {
+    const store = useStore();
+
+    const state = {
+      form: reactive({
         access_key: null,
         uuid: null,
         hash: null,
         nofu: 1
-      },
+      }),
       rules: {
         access_key: [
           {
@@ -81,15 +97,30 @@ export default defineComponent({
           }
         ]
       },
-      loading: false
+      loading: ref(false)
+    };
+
+    const executionToken = computed(() => store.state["executionToken"]);
+
+    watch(executionToken, async (token: Uint8Array | null): Promise<void> => {
+      if (token) {
+        await ElMessageBox({
+          title: "Please copy and save this execution token",
+          message: util.encodeBase64(token),
+          beforeClose: () => {
+            store.commit("setExecutionToken", null);
+          }
+        });
+      }
+    });
+
+    return {
+      ...toRefs(state),
+      requestExecutionToken: (_x: Form) =>
+        store.dispatch("requestExecutionToken")
     };
   },
-  computed: {
-    ...mapState(["executionToken"])
-  },
   methods: {
-    ...mapActions(["requestExecutionToken"]),
-    ...mapMutations(["setExecutionToken"]),
     onSubmit(formName: string) {
       (this.$refs[formName] as typeof elForm).validate(
         async (valid: boolean) => {
@@ -107,22 +138,6 @@ export default defineComponent({
           }
         }
       );
-    },
-    async handleMsgDisplay(executionToken: Uint8Array) {
-      await ElMessageBox({
-        title: "Please copy and save this execution token",
-        message: util.encodeBase64(executionToken),
-        beforeClose: () => {
-          this.setExecutionToken(null);
-        }
-      });
-    }
-  },
-  watch: {
-    executionToken(newState: Uint8Array | null) {
-      if (newState) {
-        this.handleMsgDisplay(newState);
-      }
     }
   }
 });
