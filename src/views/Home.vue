@@ -13,11 +13,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, onMounted } from "vue";
 import FileUpload from "@/components/FileUpload.vue";
 import JwtDisplay from "@/components/JwtDisplay.vue";
 import Attestation from "@/components/Attestation.vue";
-import { mapActions } from "vuex";
+import { useStore } from "vuex";
 import { notifyErrors } from "@/utils/error-notification";
 
 export default defineComponent({
@@ -27,18 +27,18 @@ export default defineComponent({
     FileUpload,
     JwtDisplay
   },
-  async mounted() {
-    await this.getAttestation();
-  },
-  methods: {
-    ...mapActions(["requestAttestation"]),
-    async getAttestation() {
-      // TODO: Better error handling when the attestation call fails
+  setup() {
+    const store = useStore();
+
+    async function getAttestation() {
       await notifyErrors(
         "Attestation failed",
-        async () => await this.requestAttestation()
+        async () => await store.dispatch("requestAttestation")
       );
     }
+    onMounted(async () => {
+      await getAttestation();
+    });
   }
 });
 </script>
