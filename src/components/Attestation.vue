@@ -14,19 +14,18 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import { mapState } from "vuex";
+import { computed, defineComponent } from "vue";
+import { useStore } from "vuex";
 
 export default defineComponent({
-  data() {
+  setup() {
+    const user_attestation = ["mrsigner", "mrenclave"];
+    const store = useStore();
+
     return {
-      user_attestation: ["mrsigner", "mrenclave"]
+      user_attestation,
+      attestation: computed(() => store.state["attestationResult"])
     };
-  },
-  computed: {
-    ...mapState({
-      attestation: "attestationResult"
-    })
   }
 });
 </script>

@@ -7,9 +7,9 @@
           type="primary"
           v-if="
             !Boolean(
-              state._file.state ||
-                state._file.state === 'success' ||
-                state._file.state === 'error'
+              datasetFile.state ||
+                datasetFile.state === 'success' ||
+                datasetFile.state === 'error'
             )
           "
           @click="select"
@@ -19,7 +19,7 @@
       </el-col>
     </el-row>
     <el-row>
-      <el-col v-if="state._file.state">
+      <el-col v-if="datasetFile.state">
         <el-descriptions
           title="Selected file"
           direction="horizontal"
@@ -28,16 +28,16 @@
           size="small"
         >
           <el-descriptions-item label="Name">
-            {{ state._file.name }}
+            {{ datasetFile.name }}
           </el-descriptions-item>
           <el-descriptions-item label="Size">
-            {{ (state._file.size / 1024).toFixed(2) + "kb" }}
+            {{ (datasetFile.size / 1024).toFixed(2) + "kb" }}
           </el-descriptions-item>
           <el-descriptions-item label="Type">
-            {{ state._file.type }}
+            {{ datasetFile.type }}
           </el-descriptions-item>
           <el-descriptions-item label="Extension">
-            {{ state._file.extension }}
+            {{ datasetFile.extension }}
           </el-descriptions-item>
           <el-descriptions-item label="Upload access key">
             {{ uploadResult?.accessKey }}
@@ -51,9 +51,9 @@
           <el-button
             size="small"
             type="danger"
-            v-show="state._file.state === 'queue'"
+            v-if="datasetFile.state === 'queue'"
             @click="
-              state._file.clear();
+              datasetFile.clear();
               encryptionResult = undefined;
             "
           >
@@ -63,8 +63,8 @@
           <el-button
             size="small"
             type="success"
-            v-show="state._file.state === 'queue'"
-            @click="uploadFile(state._file)"
+            v-if="datasetFile.state === 'queue'"
+            @click="uploadFile()"
           >
             Encrypt and Upload File
           </el-button>
@@ -72,7 +72,7 @@
       </el-col>
     </el-row>
     <el-row>
-      <el-col v-if="encryptionResult && state._file.state">
+      <el-col v-if="encryptionResult && datasetFile.state">
         <el-descriptions direction="vertical" :column="1" border size="small">
           <el-descriptions-item label="Secret key">
             {{ encryptionResult.keyBase64 }}
@@ -100,46 +100,47 @@ import {
   defineComponent,
   onBeforeUnmount,
   onMounted,
-  reactive
+  reactive,
+  toRefs,
+  watch
 } from "vue";
-import { UploadFile, useUpload } from "@websanova/vue-upload";
-import { mapActions, mapState } from "vuex";
+import { useUpload } from "@websanova/vue-upload";
+import { useStore } from "vuex";
+
+interface EncryptionResult {
+  cipherBlob: Blob;
+  nonceBase64: string;
+  keyBase64: string;
+}
 
 export default defineComponent({
-  data: (): {
-    encryptionResult?: {
-      cipherBlob: Blob;
-      nonceBase64: string;
-      keyBase64: string;
-    };
-  } => ({
-    encryptionResult: undefined
-  }),
-  computed: {
-    ...mapState(["uploadResult"]),
-    /** Allocate an object URL for encryptedFile. */
-    encryptedFileURL(): string | undefined {
-      return this.encryptionResult?.cipherBlob
-        ? URL.createObjectURL(this.encryptionResult.cipherBlob)
-        : undefined;
-    }
-  },
-  watch: {
-    /** Release old object URLs on change.  */
-    encryptedFileURL(newURL: string, oldURL: string): void {
-      if (oldURL) URL.revokeObjectURL(oldURL);
-    }
-  },
   setup() {
     const upload = useUpload();
     const state = reactive({
-      _file: computed(() => {
+      encryptionResult: undefined as unknown as EncryptionResult,
+      datasetFile: computed(() => {
         return upload.file("the-file");
       })
     });
+    const encryptedFileURL = computed(() => {
+      return state.encryptionResult?.cipherBlob
+        ? URL.createObjectURL(state.encryptionResult.cipherBlob)
+        : undefined;
+    });
+
+    watch(encryptedFileURL, (_newURL, oldURL): void => {
+      if (oldURL) URL.revokeObjectURL(oldURL);
+    });
+
     function select() {
       upload.select("the-file");
     }
+
+    const store = useStore();
+    function uploadFile() {
+      store.dispatch("encryptAndUploadFile", state.datasetFile.$file);
+    }
+
     onMounted(() => {
       upload.on("the-file", {
         startOnSelect: false,
@@ -150,16 +151,12 @@ export default defineComponent({
       upload.off("the-file");
     });
     return {
-      state,
-      select
+      ...toRefs(state),
+      select,
+      uploadFile,
+      encryptedFileURL,
+      uploadResult: computed(() => store.state["uploadResult"])
     };
-  },
-  methods: {
-    ...mapActions(["encryptAndUploadFile"]),
-    /** Encrypt the given file to encryptionResult. */
-    async uploadFile(uploadFile: UploadFile) {
-      await this.encryptAndUploadFile(uploadFile.$file);
-    }
   }
 });
 </script>
