@@ -7,9 +7,9 @@
           type="primary"
           v-if="
             !Boolean(
-              theFile.state ||
-                theFile.state === 'success' ||
-                theFile.state === 'error'
+              datasetFile.state ||
+                datasetFile.state === 'success' ||
+                datasetFile.state === 'error'
             )
           "
           @click="select"
@@ -19,7 +19,7 @@
       </el-col>
     </el-row>
     <el-row>
-      <el-col v-if="theFile.state">
+      <el-col v-if="datasetFile.state">
         <el-descriptions
           title="Selected file"
           direction="horizontal"
@@ -28,16 +28,16 @@
           size="small"
         >
           <el-descriptions-item label="Name">
-            {{ theFile.name }}
+            {{ datasetFile.name }}
           </el-descriptions-item>
           <el-descriptions-item label="Size">
-            {{ (theFile.size / 1024).toFixed(2) + "kb" }}
+            {{ (datasetFile.size / 1024).toFixed(2) + "kb" }}
           </el-descriptions-item>
           <el-descriptions-item label="Type">
-            {{ theFile.type }}
+            {{ datasetFile.type }}
           </el-descriptions-item>
           <el-descriptions-item label="Extension">
-            {{ theFile.extension }}
+            {{ datasetFile.extension }}
           </el-descriptions-item>
           <el-descriptions-item label="Upload access key">
             {{ uploadResult?.accessKey }}
@@ -51,9 +51,9 @@
           <el-button
             size="small"
             type="danger"
-            v-if="theFile.state === 'queue'"
+            v-if="datasetFile.state === 'queue'"
             @click="
-              theFile.clear();
+              datasetFile.clear();
               encryptionResult = undefined;
             "
           >
@@ -63,7 +63,7 @@
           <el-button
             size="small"
             type="success"
-            v-if="theFile.state === 'queue'"
+            v-if="datasetFile.state === 'queue'"
             @click="uploadFile()"
           >
             Encrypt and Upload File
@@ -72,7 +72,7 @@
       </el-col>
     </el-row>
     <el-row>
-      <el-col v-if="encryptionResult && theFile.state">
+      <el-col v-if="encryptionResult && datasetFile.state">
         <el-descriptions direction="vertical" :column="1" border size="small">
           <el-descriptions-item label="Secret key">
             {{ encryptionResult.keyBase64 }}
@@ -117,8 +117,8 @@ export default defineComponent({
   setup() {
     const upload = useUpload();
     const state = reactive({
-      encryptionResult: (undefined as unknown) as EncryptionResult,
-      theFile: computed(() => {
+      encryptionResult: undefined as unknown as EncryptionResult,
+      datasetFile: computed(() => {
         return upload.file("the-file");
       })
     });
@@ -138,7 +138,7 @@ export default defineComponent({
 
     const store = useStore();
     function uploadFile() {
-      store.dispatch("encryptAndUploadFile", state.theFile.$file);
+      store.dispatch("encryptAndUploadFile", state.datasetFile.$file);
     }
 
     onMounted(() => {
